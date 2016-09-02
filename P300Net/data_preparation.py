@@ -105,8 +105,8 @@ def triplet_data_generator_no_dict(data, tags, batch_size, select=3, outof=10):
         shuffled_combination = np.random.permutation(all_combination)
         for counter_i ,i in enumerate(range(0,len(shuffled_combination), batch_size)):
             # print "{}:{}".format(i, min(i +batch_size,len(shuffled_combination) ))
-            if counter_i  == 5:
-                break
+            # if counter_i  == 5:
+            #     break
 
             batch_data = np.zeros((batch_size, magic_number, time_samples_dim_size, channel_dim_size), dtype=np.float32)
             batch_tags = np.zeros((batch_size, magic_number ), dtype=np.int8)

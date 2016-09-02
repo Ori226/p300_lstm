@@ -172,8 +172,8 @@ def identity_loss_v2(y_true, y_pred):
 
 def identity_loss_v3(y_true, y_pred):
     import theano
-    y_true_reshaped = K.mean(K.reshape(y_true, (-1, 9, 30)), axis=1)
-    y_pred_reshaped = K.softmax(K.mean(K.reshape(y_pred, (-1, 9, 30)), axis=1))
+    y_true_reshaped = K.mean(K.reshape(y_true, (-1, 3, 30)), axis=1)
+    y_pred_reshaped = K.softmax(K.mean(K.reshape(y_pred, (-1, 3, 30)), axis=1))
 
 
     # y_true_reshaped = K.reshape(y_true, (-1, 30))
@@ -185,6 +185,41 @@ def identity_loss_v3(y_true, y_pred):
     # final_val = K.mean(K.square(y_pred_reshaped- y_true_reshaped))
 
     return  final_val+y_pred*0
+
+
+def graph_ver_2(data, labels):
+    # and will return a vector of size 64
+    from keras.layers import Input, Dense
+    x = Input(shape=(784,))
+    x = LSTM(100, return_sequences=True)(x)
+    x = LSTM(100, return_sequences=False)(x)
+    x = Dense(1, activation='sigmoid')(x)
+
+    # when we reuse the same layer instance
+    # multiple times, the weights of the layer
+    # are also being reused
+    # (it is effectively *the same* layer)
+    encoded_a = shared_lstm(tweet_a)
+    encoded_b = shared_lstm(tweet_b)
+
+    from keras.models import Model
+
+    # this returns a tensor
+    inputs = Input(shape=(784,))
+
+    # a layer instance is callable on a tensor, and returns a tensor
+    x = Dense(64, activation='relu')(inputs)
+    x = Dense(64, activation='relu')(x)
+    predictions = Dense(10, activation='softmax')(x)
+
+    # this creates a model that includes
+    # the Input layer and three Dense layers
+    model = Model(input=inputs, output=predictions)
+    model.compile(optimizer='rmsprop',
+                  loss='categorical_crossentropy',
+                  metrics=['accuracy'])
+    model.fit(data, labels)  # starts training
+
 
 data_base_dir = r'C:\Users\ORI\Documents\Thesis\dataset_all'
 if __name__ == "__main__":
@@ -216,10 +251,10 @@ if __name__ == "__main__":
 
         # data_generator = triplet_data_generator(all_data_per_char_as_matrix[train_mode_per_block == 1], target_per_char_as_matrix[train_mode_per_block == 1], 80)
 
-        data_generator = triplet_data_generator_no_dict(all_data_per_char_as_matrix[train_mode_per_block == 1], target_per_char_as_matrix[train_mode_per_block == 1], 6,9)
+        data_generator = triplet_data_generator_no_dict(all_data_per_char_as_matrix[train_mode_per_block == 1], target_per_char_as_matrix[train_mode_per_block == 1], 80,3)
         # data_generator_no_label = triplet_data_generator_no_dict_no_label(all_data_per_char_as_matrix[train_mode_per_block == 1],
         #                                                 target_per_char_as_matrix[train_mode_per_block == 1], 4)
-        number_of_samples_in_epoch = get_number_of_samples_per_epoch(all_data_per_char_as_matrix[train_mode_per_block == 1].shape[0],9,10)
+        number_of_samples_in_epoch = get_number_of_samples_per_epoch(all_data_per_char_as_matrix[train_mode_per_block == 1].shape[0],3,10)
         # number_of_samples_in_epoch = 24000
         # temp = data_generator.next()
 
@@ -257,7 +292,7 @@ if __name__ == "__main__":
         print "after compile"
 
 
-        model.fit_generator(data_generator,64800, nb_epoch=10, max_q_size=1)
+        model.fit_generator(data_generator,36000, nb_epoch=10, max_q_size=1)
         final_model = model
 
 
