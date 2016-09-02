@@ -45,10 +45,18 @@ def get_user_subgraph(input_shape, latent_dim):
     model.add(Dense(latent_dim, input_shape=input_shape))
     return model
 
+# original
+# def per_char_loss(X):
+#     alls = X.values()
+#     concatenated = K.concatenate(alls)
+#     reshaped = K.mean(K.reshape(concatenated, (K.shape(concatenated)[0], 3, 30)), axis=1)
+#
+#     return K.softmax(K.reshape(reshaped, (reshaped.shape[0], -1)))
+
 
 def per_char_loss(X):
-    alls = X.values()
-    concatenated = K.concatenate(alls)
+    #alls = X.values()
+    concatenated = X #K.concatenate(alls)
     reshaped = K.mean(K.reshape(concatenated, (K.shape(concatenated)[0], 3, 30)), axis=1)
 
     return K.softmax(K.reshape(reshaped, (reshaped.shape[0], -1)))
@@ -111,6 +119,33 @@ def get_graph_lstm(num_items, latent_dim, number_of_timestamps, number_of_channe
 
     return model
 
+
+def get_graph_lstm_kers_v1(num_items, latent_dim, number_of_timestamps, number_of_channels):
+    batch_input_shape = (1, number_of_timestamps, number_of_channels)
+    # batch_input_shape = None
+    magic_num = 90
+    model = Graph()
+
+
+    for i in range(magic_num):
+        model.add_input('positive_item_input_{}'.format(i), batch_input_shape=batch_input_shape)
+
+    model.add_shared_node(get_item_lstm_subgraph(number_of_timestamps,number_of_channels),
+                          name='item_latent',
+                          inputs=["positive_item_input_{}".format(i) for i in range(magic_num)],
+                          merge_mode='concat', concat_axis=0)
+
+    temp = model['item_latent']
+    # Compute loss
+    model.add_node(Lambda(per_char_loss),
+                   name='triplet_loss',
+                   input='item_latent')
+
+    # Add output
+    model.add_output(name='triplet_loss', input='triplet_loss')
+    model.compile(loss={'triplet_loss': identity_loss}, optimizer='rmsprop')  # Adagrad(lr=0.1, epsilon=1e-06))
+
+    return model
 
 
 def get_graph_lstm_new_keras(num_items, latent_dim, number_of_timestamps, number_of_channels):

@@ -1,8 +1,5 @@
-from keras.layers import BatchNormalization
-
-from P300Net.data_preparation import create_data_rep_training, triplet_data_generator, triplet_data_collection, \
-    triplet_data_generator_no_dict, get_number_of_samples_per_epoch, triplet_data_generator_no_dict_no_label
-from P300Net.models import get_item_subgraph, get_graph,get_graph_lstm,  get_item_lstm_subgraph
+from P300Net.data_preparation import create_data_rep_training, triplet_data_generator, triplet_data_collection
+from P300Net.models import get_item_subgraph, get_graph,get_graph_lstm,  get_item_lstm_subgraph, get_graph_lstm_kers_v1
 from experiments.P300_RSVP.common import *
 from sklearn.utils import shuffle
 import theano.tensor as T
@@ -156,43 +153,11 @@ def train_p300_model(model, train_data_as_matrix, train_tags_as_matrix):
 #
 #     print "temp"
 
-from keras import backend as K
-def identity_loss_v2(y_true, y_pred):
-
-    # calculate the average loss over the whole batch:
-    # K.reshape(dictionary_size*number_of_repetition, y_pred)
-    # return K.mean(K.flatten(y_pred), axis=0)*0+ K.mean(y_pred,axis=1).shape[0]+0*y_pred.shape[0] - 0 * K.max(K.flatten(y_true))
-
-    reshaped = K.mean(K.reshape(y_pred, (30, 3,-1)), axis=1)
-
-    return K.mean(K.softmax(K.reshape(reshaped, (reshaped.shape[0], -1)))) +0*y_pred
-
-
-
-
-def identity_loss_v3(y_true, y_pred):
-    import theano
-    y_true_reshaped = K.mean(K.reshape(y_true, (-1, 9, 30)), axis=1)
-    y_pred_reshaped = K.softmax(K.mean(K.reshape(y_pred, (-1, 9, 30)), axis=1))
-
-
-    # y_true_reshaped = K.reshape(y_true, (-1, 30))
-    # x_printed = theano.printing.Print('this is a very important value')(y_true_reshaped)
-    # y_pred_reshaped = K.softmax(K.reshape(y_pred, (-1, 30)))
-
-    final_val = K.mean(K.categorical_crossentropy(y_pred_reshaped, y_true_reshaped))
-
-    # final_val = K.mean(K.square(y_pred_reshaped- y_true_reshaped))
-
-    return  final_val+y_pred*0
 
 data_base_dir = r'C:\Users\ORI\Documents\Thesis\dataset_all'
-data_base_dir = r'/data_set'
 if __name__ == "__main__":
 
-    all_subjects = ["RSVP_Color116msVPicr.mat",
-        "RSVP_Color116msVPpia.mat",
-                    "RSVP_Color116msVPfat.mat",
+    all_subjects = ["RSVP_Color116msVPpia.mat",
                     "RSVP_Color116msVPgcb.mat",
                     "RSVP_Color116msVPgcc.mat",
                     "RSVP_Color116msVPgcd.mat",
@@ -200,13 +165,9 @@ if __name__ == "__main__":
                     "RSVP_Color116msVPgcg.mat",
                     "RSVP_Color116msVPgch.mat",
                     "RSVP_Color116msVPiay.mat",
-                    "RSVP_Color116msVPicn.mat"];
-
-    all_subjects = [
                     "RSVP_Color116msVPicn.mat",
-                    "RSVP_Color116msVPicn.mat",
-                    "RSVP_Color116msVPicn.mat",
-                    "RSVP_Color116msVPicn.mat"];
+                    "RSVP_Color116msVPicr.mat",
+                    "RSVP_Color116msVPfat.mat",];
 
     for subject in all_subjects:
         # subject = "RSVP_Color116msVPgcd.mat"
@@ -215,79 +176,92 @@ if __name__ == "__main__":
         all_data_per_char, target_per_char, train_mode_per_block, all_data_per_char_as_matrix, target_per_char_as_matrix = create_data_rep_training(
             file_name, -200, 800,downsampe_params=8)
 
-        # data_generator = triplet_data_generator(all_data_per_char_as_matrix[train_mode_per_block == 1], target_per_char_as_matrix[train_mode_per_block == 1], 80)
+        data_generator = triplet_data_generator(all_data_per_char_as_matrix[train_mode_per_block == 1], target_per_char_as_matrix[train_mode_per_block == 1], 80)
 
-        data_generator = triplet_data_generator_no_dict(all_data_per_char_as_matrix[train_mode_per_block == 1], target_per_char_as_matrix[train_mode_per_block == 1], 6,9)
-        # data_generator_no_label = triplet_data_generator_no_dict_no_label(all_data_per_char_as_matrix[train_mode_per_block == 1],
-        #                                                 target_per_char_as_matrix[train_mode_per_block == 1], 4)
-        number_of_samples_in_epoch = get_number_of_samples_per_epoch(all_data_per_char_as_matrix[train_mode_per_block == 1].shape[0],9,10)
-        # number_of_samples_in_epoch = 24000
-        # temp = data_generator.next()
-
-        # testing_data, testing_tags = get_all_triplet_combinations_testing(all_data_per_char_as_matrix,
-        #                                                                   target_per_char_as_matrix,
-        #                                                                   train_mode_per_block)
+        testing_data, testing_tags = get_all_triplet_combinations_testing(all_data_per_char_as_matrix,
+                                                                          target_per_char_as_matrix,
+                                                                          train_mode_per_block)
 
 
-        # valid_data = triplet_data_collection(all_data_per_char_as_matrix[train_mode_per_block == 2],
-        #                                      target_per_char_as_matrix[train_mode_per_block == 2], 80)
+        valid_data = triplet_data_collection(all_data_per_char_as_matrix[train_mode_per_block == 2],
+                                             target_per_char_as_matrix[train_mode_per_block == 2], 80)
 
-        total_number_of_char_in_training = 24000# all_data_per_char_as_matrix[train_mode_per_block == 1].shape[0]/10
+        total_number_of_char_in_training = all_data_per_char_as_matrix[train_mode_per_block == 1].shape[0]/10
+
+        # region Build the P300Net model
+        model = get_graph_lstm_kers_v1(3, 10, 25,55)
+        # endregion
+
+        # region the P300Net identification model
+        P300IdentificationModel = get_item_lstm_subgraph(25, 55)
+        P300IdentificationModel.compile(loss='binary_crossentropy', class_mode="binary", optimizer='rmsprop')
+        # endregion
+
+        # region train the P300Net model
+        # model.fit_generator(data_generator, 2880, nb_epoch=10, validation_data=valid_data)
+        model.fit_generator(data_generator, 2880, nb_epoch=5)
+        # endregion
 
 
-
-        from keras.models import Sequential
-        from keras.layers.core import Dense, Activation, Flatten, Dropout, Lambda
-        from keras.layers.recurrent import LSTM, GRU
-        from keras.regularizers import l2
-
-        number_of_timestamps = 25
-        _num_of_hidden_units = 100
-        model = Sequential()
-        model.add(LSTM(input_dim=55, output_dim=_num_of_hidden_units, input_length=number_of_timestamps,
-                       return_sequences=True))
-        model.add(LSTM(input_dim=_num_of_hidden_units, output_dim=_num_of_hidden_units, return_sequences=False))
-        model.add(Dense(1, input_dim=1, activation='sigmoid'))
-
-
-        model.compile(optimizer='rmsprop',
-                      loss=identity_loss_v3)
+        # all_train_data = dict()
+        # train_p300_model(P300IdentificationModel, all_data_per_char_as_matrix[train_mode_per_block == 1],
+        #                  target_per_char_as_matrix[train_mode_per_block == 1])
 
 
 
-        print "after compile"
+        final_model = get_item_lstm_subgraph(25,55)
+        final_model_original_weights = final_model.get_weights()
 
+        final_model.compile(loss='binary_crossentropy', class_mode="binary", optimizer='sgd')
+        final_model.set_weights(list(model.nodes['item_latent'].layer.get_weights()))
 
-        model.fit_generator(data_generator,64800, nb_epoch=10, max_q_size=1)
-        final_model = model
 
 
         all_prediction_P300Net = predict_p300_model(final_model, all_data_per_char_as_matrix[train_mode_per_block != 1])
-        all_prediction_normal = None # predict_p300_model(P300IdentificationModel, all_data_per_char_as_matrix[train_mode_per_block == 1])
+        all_prediction_normal = predict_p300_model(P300IdentificationModel, all_data_per_char_as_matrix[train_mode_per_block != 1])
         # all_prediction_normal = all_prediction_P300Net
-
+        plt.subplot(1, 4, 1)
+        plt.imshow(all_prediction_P300Net, interpolation='none')
+        plt.subplot(1, 4, 2)
         x = T.dmatrix('x')
         import theano
 
         softmax_res_func = theano.function([x], T.nnet.softmax(x))
 
+        #
+        # plt.imshow(softmax_res_func(all_prediction), interpolation='none')
+        # plt.subplot(1, 4, 3)
+        # plt.imshow(softmax_res_func(np.mean(all_prediction.reshape((-1, 10, 30)), axis=1)).astype(np.int),
+        #            interpolation='none')
+
+        plt.subplot(1, 4, 3)
         test_tags = target_per_char_as_matrix[train_mode_per_block != 1] # np.array([target_per_char[x][train_mode_per_block != 1] for x in range(30)]).T
+        # plt.imshow(np.mean(all_res.reshape((-1, 10, 30)), axis=1), interpolation='none')
+
+
+
+
         all_res = test_tags
 
-        actual = np.argmax(softmax_res_func(np.mean(all_prediction_P300Net.reshape((-1, 10, 30)), axis=1)),axis=1);
+        # plt.imshow(softmax_res_func(all_prediction_normal.reshape((-1, 30))), interpolation='none')
+
+
+
+        actual_untrained = np.argmax(softmax_res_func(np.mean(all_prediction_normal.reshape((-1, 10, 30)),axis=1)),axis=1)
+        actual = np.argmax(softmax_res_func(np.mean(all_prediction_P300Net.reshape((-1, 10, 30)), axis=1)),1);
         gt = np.argmax(np.mean(all_res.reshape((-1, 10, 30)), axis=1),axis=1)
+        # np.intersect1d(actual, gt)
         accuracy = np.sum(actual == gt) / float(len(gt))
 
         # plt.subplot(1, 2, 1)
-        # plt.imshow(softmax_res_func(np.mean(all_prediction_P300Net.reshape((-1, 10, 30)), axis=1)))
+        # plt.imshow(softmax_res_func(np.mean(all_prediction_normal.reshape((-1, 10, 30)), axis=1)))
         # plt.subplot(1, 2, 2)
-        # # plt.imshow(np.mean(all_res.reshape((-1, 10, 30)), axis=1))
+        # plt.imshow(np.mean(all_res.reshape((-1, 10, 30)), axis=1))
         # plt.show()
 
         # accuracy = 0
-        # accuracy_untrained = np.sum(actual_untrained == gt) / float(len(gt))
-        accuracy_untrained = 0
-        print "subject:{0} accu:{1}".format(subject, accuracy)
+        accuracy_untrained = np.sum(actual_untrained == gt) / float(len(gt))
+        print "subject:{0} accu:{1} acc_untrained{2}".format(subject, accuracy, accuracy_untrained)
         # target_per_char_as_matrix[0:10,:]
 
 
