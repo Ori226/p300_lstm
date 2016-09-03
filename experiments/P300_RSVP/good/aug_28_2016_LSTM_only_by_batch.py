@@ -9,14 +9,25 @@ import theano.tensor as T
 import scipy
 __author__ = 'ORI'
 
+from sys import platform
+
+
+is_local = True
+if platform != "win32":
+    is_local = False
+
+
+
 import numpy as np
 import os
 import sklearn
 import matplotlib.pyplot as plt
 from scipy import stats
-
+import cPickle as pickle
 rng = np.random.RandomState(42)
-
+from os.path import basename
+this_file_names = basename(__file__).split('.')[0]
+print (this_file_names)
 
 
 def create_training_and_testing_per_character(gcd_res, fist_time_stamp=0, last_time_stamp=400, down_samples_param=1,
@@ -186,8 +197,15 @@ def identity_loss_v3(y_true, y_pred):
 
     return  final_val+y_pred*0
 
-data_base_dir = r'C:\Users\ORI\Documents\Thesis\dataset_all'
-data_base_dir = r'/data_set'
+# C:\Users\ORI\Documents\Thesis\experiment_results
+# C:\Users\ORI\Documents\Thesis\expreiment_results
+if is_local:
+    data_base_dir = r'C:\Users\ORI\Documents\Thesis\dataset_all'
+    experiments_dir = r'C:\Users\ORI\Documents\Thesis\expreiment_results'
+
+else:
+    data_base_dir = r'/data_set'
+    experiments_dir = r'/results'
 if __name__ == "__main__":
 
     all_subjects = ["RSVP_Color116msVPicr.mat",
@@ -203,12 +221,9 @@ if __name__ == "__main__":
                     "RSVP_Color116msVPicn.mat"];
 
     all_subjects = [
-                    "RSVP_Color116msVPicn.mat",
-                    "RSVP_Color116msVPicn.mat",
-                    "RSVP_Color116msVPicn.mat",
                     "RSVP_Color116msVPicn.mat"];
 
-    for subject in all_subjects:
+    for experiment_counter, subject in enumerate(all_subjects):
         # subject = "RSVP_Color116msVPgcd.mat"
 
         file_name = os.path.join(data_base_dir, subject)
@@ -257,14 +272,12 @@ if __name__ == "__main__":
 
         print "after compile"
 
-
-        model.fit_generator(data_generator,64800, nb_epoch=10, max_q_size=1)
+        number_of_samples_in_epoch = 10
+        model_training_results  = model.fit_generator(data_generator,number_of_samples_in_epoch, nb_epoch=1, max_q_size=1)
         final_model = model
 
 
         all_prediction_P300Net = predict_p300_model(final_model, all_data_per_char_as_matrix[train_mode_per_block != 1])
-        all_prediction_normal = None # predict_p300_model(P300IdentificationModel, all_data_per_char_as_matrix[train_mode_per_block == 1])
-        # all_prediction_normal = all_prediction_P300Net
 
         x = T.dmatrix('x')
         import theano
@@ -274,20 +287,17 @@ if __name__ == "__main__":
         test_tags = target_per_char_as_matrix[train_mode_per_block != 1] # np.array([target_per_char[x][train_mode_per_block != 1] for x in range(30)]).T
         all_res = test_tags
 
-        actual = np.argmax(softmax_res_func(np.mean(all_prediction_P300Net.reshape((-1, 10, 30)), axis=1)),axis=1);
+        actual = np.argmax(np.mean(all_prediction_P300Net.reshape((-1, 10, 30)), axis=1),axis=1);
         gt = np.argmax(np.mean(all_res.reshape((-1, 10, 30)), axis=1),axis=1)
         accuracy = np.sum(actual == gt) / float(len(gt))
 
-        # plt.subplot(1, 2, 1)
-        # plt.imshow(softmax_res_func(np.mean(all_prediction_P300Net.reshape((-1, 10, 30)), axis=1)))
-        # plt.subplot(1, 2, 2)
-        # # plt.imshow(np.mean(all_res.reshape((-1, 10, 30)), axis=1))
-        # plt.show()
-
-        # accuracy = 0
-        # accuracy_untrained = np.sum(actual_untrained == gt) / float(len(gt))
-        accuracy_untrained = 0
         print "subject:{0} accu:{1}".format(subject, accuracy)
-        # target_per_char_as_matrix[0:10,:]
+        all_model_results = dict(subject=subject,accuracy=accuracy, prediction_results=all_prediction_P300Net)
+
+        # results = os.path.join(experiments_dir,this_file_names) + ".p"
+        pickle.dump(all_model_results, file=open(os.path.join(experiments_dir,this_file_names+"_"+str(experiment_counter)+"_"+subject) + ".p", "wb"))
+
+        # save: loss historay, final accuracy, model weight ( in order to achieve TP\FP, source data
+
 
 

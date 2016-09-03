@@ -87,7 +87,7 @@ def triplet_data_generator(data, tags, batch_size, select=3, outof=10):
 
 def get_number_of_samples_per_epoch(number_of_samples,select=3, outof=10):
     dictionary_size = 30
-    return len( _get_all_possible_combination(np.arange(number_of_samples), outof, select)) * dictionary_size
+    return len( _get_all_possible_combination(np.arange(number_of_samples), outof, select))*select * dictionary_size
 
 def triplet_data_generator_no_dict(data, tags, batch_size, select=3, outof=10):
     from scipy import stats
