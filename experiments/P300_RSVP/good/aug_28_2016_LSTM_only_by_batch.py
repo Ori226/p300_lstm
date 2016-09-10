@@ -1,7 +1,8 @@
 from keras.layers import BatchNormalization
 
 from P300Net.data_preparation import create_data_rep_training, triplet_data_generator, triplet_data_collection, \
-    triplet_data_generator_no_dict, get_number_of_samples_per_epoch, triplet_data_generator_no_dict_no_label
+    triplet_data_generator_no_dict, get_number_of_samples_per_epoch, triplet_data_generator_no_dict_no_label, \
+    get_number_of_samples_per_epoch_batch_mode
 from P300Net.models import get_item_subgraph, get_graph,get_graph_lstm,  get_item_lstm_subgraph
 from experiments.P300_RSVP.common import *
 from sklearn.utils import shuffle
@@ -183,8 +184,8 @@ def identity_loss_v2(y_true, y_pred):
 
 def identity_loss_v3(y_true, y_pred):
     import theano
-    y_true_reshaped = K.mean(K.reshape(y_true, (-1, 9, 30)), axis=1)
-    y_pred_reshaped = K.softmax(K.mean(K.reshape(y_pred, (-1, 9, 30)), axis=1))
+    y_true_reshaped = K.mean(K.reshape(y_true, (-1, 3, 30)), axis=1)
+    y_pred_reshaped = K.softmax(K.mean(K.reshape(y_pred, (-1, 3, 30)), axis=1))
 
 
     # y_true_reshaped = K.reshape(y_true, (-1, 30))
@@ -220,8 +221,8 @@ if __name__ == "__main__":
                     "RSVP_Color116msVPiay.mat",
                     "RSVP_Color116msVPicn.mat"];
 
-    all_subjects = [
-                    "RSVP_Color116msVPicn.mat"];
+    # all_subjects = [
+    #                 "RSVP_Color116msVPicn.mat"];
 
     for experiment_counter, subject in enumerate(all_subjects):
         # subject = "RSVP_Color116msVPgcd.mat"
@@ -232,10 +233,10 @@ if __name__ == "__main__":
 
         # data_generator = triplet_data_generator(all_data_per_char_as_matrix[train_mode_per_block == 1], target_per_char_as_matrix[train_mode_per_block == 1], 80)
 
-        data_generator = triplet_data_generator_no_dict(all_data_per_char_as_matrix[train_mode_per_block == 1], target_per_char_as_matrix[train_mode_per_block == 1], 6,9)
+        data_generator = triplet_data_generator_no_dict(all_data_per_char_as_matrix[train_mode_per_block == 1], target_per_char_as_matrix[train_mode_per_block == 1], 40,3)
         # data_generator_no_label = triplet_data_generator_no_dict_no_label(all_data_per_char_as_matrix[train_mode_per_block == 1],
         #                                                 target_per_char_as_matrix[train_mode_per_block == 1], 4)
-        number_of_samples_in_epoch = get_number_of_samples_per_epoch(all_data_per_char_as_matrix[train_mode_per_block == 1].shape[0],9,10)
+        number_of_samples_in_epoch = get_number_of_samples_per_epoch_batch_mode(all_data_per_char_as_matrix[train_mode_per_block == 1].shape[0],3,10)
         # number_of_samples_in_epoch = 24000
         # temp = data_generator.next()
 
@@ -272,8 +273,8 @@ if __name__ == "__main__":
 
         print "after compile"
 
-        number_of_samples_in_epoch = 10
-        model_training_results  = model.fit_generator(data_generator,number_of_samples_in_epoch, nb_epoch=1, max_q_size=1)
+        # number_of_samples_in_epoch = 10
+        model_training_results  = model.fit_generator(data_generator,number_of_samples_in_epoch, nb_epoch=2, max_q_size=1)
         final_model = model
 
 
