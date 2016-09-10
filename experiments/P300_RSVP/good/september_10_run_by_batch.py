@@ -4,7 +4,7 @@ from P300Net.data_preparation import create_data_rep_training, triplet_data_gene
 from experiments.P300_RSVP.common import *
 from sklearn.utils import shuffle
 from keras import backend as K
-
+from keras.models import Model
 import scipy
 
 __author__ = 'ORI'
@@ -43,6 +43,7 @@ def get_only_P300_model(eeg_sample_shape):
     # x = Dense(3)(x)
     out = Dense(1, activation='tanh')(x)
     # out = Activation('tanh')(x)
+
 
     model = Model(digit_input, out)
     return model
@@ -120,7 +121,7 @@ if __name__ == "__main__":
         from keras.models import Sequential
 
         from keras.layers import merge, Input, Dense, Flatten, Activation, Lambda
-        from keras.models import Model
+
 
         eeg_sample_shape = (25, 55)
         only_p300_model_1 = get_only_P300_model(eeg_sample_shape)

@@ -53,7 +53,7 @@ def _get_all_possible_combination_with_validation(samples_indexes, max_number_of
     all_samples = samples_indexes.reshape(-1, max_number_of_repetitionm)
     from sklearn.cross_validation import ShuffleSplit
 
-    shuffle_split_data = list(ShuffleSplit(len(all_samples),1,test_size=0.125,random_state=0))[0]
+    shuffle_split_data = list(ShuffleSplit(len(all_samples),1,test_size=0,random_state=0))[0]
     training_data = np.sort(shuffle_split_data[0]),
     validation_data = np.sort(shuffle_split_data[1])
 
@@ -90,7 +90,10 @@ def create_generator_for_combination(all_combination, data, tags, magic_number,t
     while True:
 
         if debug_mode:
-            shuffled_combination = all_combination
+            r = np.random.RandomState(1234)
+            # np.random.seed(1234)
+            shuffled_combination = r.permutation(all_combination)
+            # shuffled_combination = all_combination
         else:
             shuffled_combination = np.random.permutation(all_combination)
         for counter_i, i in enumerate(range(0, len(shuffled_combination), batch_size)):
@@ -98,7 +101,7 @@ def create_generator_for_combination(all_combination, data, tags, magic_number,t
             if counter_i == 5:
                 break
 
-            batch_data = np.zeros((batch_size, magic_number, time_samples_dim_size, channel_dim_size), dtype=np.float32)
+            batch_data = np.zeros((batch_size, magic_number, time_samples_dim_size, channel_dim_size), dtype=np.float64)
             batch_tags = np.zeros((batch_size, stimuli_category_size), dtype=np.int8)
             counter = 0
             for single_combination in shuffled_combination[i:min(i + batch_size, len(shuffled_combination))]:
@@ -112,11 +115,13 @@ def create_generator_for_combination(all_combination, data, tags, magic_number,t
 
                 input_dict['triplet_loss'] = batch_tags
             else:
-                training_batch = [stats.zscore(batch_data[:, i, :, :], axis=2) for i in
-                                  range(magic_number)]
+                # training_batch = [stats.zscore(batch_data[:, i, :, :], axis=2) for i in
+                #                   range(magic_number)]
+                training_batch = stats.zscore(np.transpose(batch_data, (1, 0, 2, 3)), axis=2)
+
 
                 label = batch_tags
-                input_dict = (training_batch, label)
+                input_dict = (training_batch.astype(np.float32), label)
             yield input_dict
 
 def train_and_valid_generator(data, tags, batch_size, select=3, outof=10, return_dict=False,debug_mode=False):
@@ -204,7 +209,9 @@ def triplet_data_generator_no_dict(data, tags, batch_size, select=3, outof=10, d
 
     while True:
         if debug_mode:
-            shuffled_combination = all_combination
+            np.random.seed(1234)
+            r = np.random.RandomState(1234)
+            shuffled_combination = r.permutation(all_combination)
         else:
             shuffled_combination = np.random.permutation(all_combination)
         for counter_i ,i in enumerate(range(0,len(shuffled_combination), batch_size)):
@@ -212,7 +219,7 @@ def triplet_data_generator_no_dict(data, tags, batch_size, select=3, outof=10, d
             if counter_i  == 5:
                 break
 
-            batch_data = np.zeros((batch_size, magic_number, time_samples_dim_size, channel_dim_size), dtype=np.float32)
+            batch_data = np.zeros((batch_size, magic_number, time_samples_dim_size, channel_dim_size), dtype=np.float64)
             batch_tags = np.zeros((batch_size, magic_number ), dtype=np.int8)
             counter = 0
             for single_combination in shuffled_combination[i:min(i +batch_size,len(shuffled_combination) )]:
@@ -231,7 +238,7 @@ def triplet_data_generator_no_dict(data, tags, batch_size, select=3, outof=10, d
 
             # yield noramlized_batch_data.reshape(-1, noramlized_batch_data.shape[2], noramlized_batch_data.shape[3]), batch_tags.T.flatten()
             yield noramlized_batch_data.reshape(noramlized_batch_data.shape[0]*noramlized_batch_data.shape[1],
-                                                noramlized_batch_data.shape[2],noramlized_batch_data.shape[3]), batch_tags.flatten()
+                                                noramlized_batch_data.shape[2],noramlized_batch_data.shape[3]).astype(np.float32), batch_tags.flatten()
             # yield batch_tags.T.reshape(-1,1), batch_tags.T.reshape(-1,1)
 
 def triplet_data_generator_no_dict_no_label(data, tags, batch_size, select=3, outof=10):
