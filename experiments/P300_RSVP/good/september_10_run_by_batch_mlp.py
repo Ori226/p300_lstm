@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
         file_name = os.path.join(data_base_dir, subject)
         all_data_per_char, target_per_char, train_mode_per_block, all_data_per_char_as_matrix, target_per_char_as_matrix = create_data_rep_training(
-            file_name, -200, 800, downsampe_params=1)
+            file_name, -200, 800, downsampe_params=8)
 
         batch_size = 80
         select = 3
@@ -103,7 +103,7 @@ if __name__ == "__main__":
 
         from keras.layers import merge, Input, Dense, Flatten, Activation, Lambda, LSTM
 
-        eeg_sample_shape = (200, 55)
+        eeg_sample_shape = (25, 55)
         only_p300_model_1 = get_only_P300_model(eeg_sample_shape)
 
         model = get_P300_model(only_p300_model_1, select=select)
@@ -133,8 +133,8 @@ if __name__ == "__main__":
 
 
         history = LossHistory()
-        # , callbacks = [history]
-        model.fit_generator(data_generator_batch,36000, 20) # train_on_batch(train_data[0], train_data[1])
+
+        model.fit_generator(data_generator_batch,36000, 20,callbacks=[history]) # train_on_batch(train_data[0], train_data[1])
 
 
 

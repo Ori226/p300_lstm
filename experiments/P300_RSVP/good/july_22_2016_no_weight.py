@@ -118,7 +118,8 @@ def train_p300_model(model, train_data_as_matrix, train_tags_as_matrix):
                                                 train_data_as_matrix.shape[2], train_data_as_matrix.shape[3])
     flatten_tags = train_tags_as_matrix.reshape(train_tags_as_matrix.shape[0] * train_tags_as_matrix.shape[1], 1)
     shuffle_flatten_data, shuffle_flatten_tags, = shuffle(flatten_data, flatten_tags, random_state=0)
-    model.fit(shuffle_flatten_data, shuffle_flatten_tags, nb_epoch=20,
+
+    model.fit( stats.zscore(shuffle_flatten_data,axis=1), shuffle_flatten_tags, nb_epoch=20,
               sample_weight=np.ones((shuffle_flatten_tags.shape[0])) + shuffle_flatten_tags.flatten() * 1)
     print "temp"
     pass
@@ -195,7 +196,7 @@ if __name__ == "__main__":
         #     all_data_per_char_as_matrix[train_mode_per_block == 2],
         #     target_per_char_as_matrix[train_mode_per_block == 2])
 
-        model = get_graph(3, 10)
+        # model = get_graph(3, 10)
         temp_model = get_item_subgraph(None, None)
 
 
@@ -208,7 +209,7 @@ if __name__ == "__main__":
         temp_model.compile(loss='binary_crossentropy', class_mode="binary", optimizer='sgd')
 
         # model.fit_generator(data_generator, len(all_data_per_char_as_matrix), nb_epoch = 1)
-        model.fit_generator(data_generator, 2880, nb_epoch=20, validation_data=valid_data)
+        # model.fit_generator(data_generator, 2880, nb_epoch=20, validation_data=valid_data)
 
         all_train_data = dict()
         train_p300_model(temp_model, all_data_per_char_as_matrix[train_mode_per_block == 1],
@@ -237,9 +238,9 @@ if __name__ == "__main__":
         #     model.train_on_batch(input_dict)
         final_model = get_item_subgraph(None, None)
         final_model_original_weights = final_model.get_weights()
-        temp_weight = list(model.nodes['item_latent'].layer.get_weights())
-        final_model.compile(loss='binary_crossentropy', class_mode="binary", optimizer='sgd')
-        final_model.set_weights(temp_weight)
+        # temp_weight = list(model.nodes['item_latent'].layer.get_weights())
+        final_model.compile(loss='binary_crossentropy', class_mode="binary", optimizer='rmsprop')
+        # final_model.set_weights(temp_weight)
         import theano.tensor as T
 
         all_prediction = np.zeros((all_data_per_char[0][train_mode_per_block != 1].shape[0], 30))
@@ -248,7 +249,7 @@ if __name__ == "__main__":
                 stats.zscore(all_data_per_char[stimuli_i][train_mode_per_block != 1], axis=1)).flatten()
             # input_dict = dict([["positive_item_input_{}".format(i),np.random.rand(1,55,200).astype(np.float32)] for i in range(60)])
 
-        all_prediction_untrained = predict_p300_model(temp_model, all_test_data)
+        # all_prediction_untrained = predict_p300_model(temp_model, all_test_data)
         plt.subplot(1, 4, 1)
         plt.imshow(all_prediction, interpolation='none')
         plt.subplot(1, 4, 2)
@@ -271,7 +272,7 @@ if __name__ == "__main__":
         # plt.show()
 
         actual_untrained = \
-        np.where(np.round(softmax_res_func(np.mean(all_prediction_untrained.reshape((-1, 10, 30)), axis=1))) == 1)[0];
+        np.argmax(softmax_res_func(np.mean(all_prediction_untrained.reshape((-1, 10, 30)), axis=1)),axis=1);
         actual = np.where(np.round(softmax_res_func(np.mean(all_prediction.reshape((-1, 10, 30)), axis=1))) == 1)[0];
         gt = np.where(np.mean(all_res.reshape((-1, 10, 30)), axis=1) == 1)[0]
         np.intersect1d(actual, gt)

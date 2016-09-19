@@ -5,7 +5,7 @@ from keras.utils.np_utils import to_categorical
 from scipy import stats
 from sklearn.cross_validation import StratifiedShuffleSplit
 from keras.callbacks import ModelCheckpoint
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+# from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
 from OriKerasExtension.P300Prediction import create_target_table, accuracy_by_repetition
 from OriKerasExtension.ThesisHelper import readCompleteMatFile, ExtractDataVer4

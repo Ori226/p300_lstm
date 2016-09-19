@@ -1,0 +1,25 @@
+FROM ermaker/keras
+
+
+
+
+
+
+RUN conda install -y \
+    jupyter \
+    matplotlib \
+    seaborn
+
+
+RUN pip install --upgrade \
+    keras \
+    https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.9.0rc0-cp27-none-linux_x86_64.whl
+
+
+
+
+VOLUME /notebook
+WORKDIR /notebook
+EXPOSE 8888
+CMD dumb-init /run.sh &
+CMD jupyter notebook --no-browser --ip=0.0.0.0

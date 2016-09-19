@@ -7,12 +7,15 @@ MAINTAINER gw0 [http://gw.tnode.com/] <gw.2016@tnode.com>
 # (already installed in upstream image)
 
 # install py2-th-cpu (Python 2, Theano, CPU/GPU)
+RUN "sh" "-c" "echo nameserver 8.8.8.8 >> /etc/resolv.conf"
+
 ARG THEANO_VERSION=0.8.2
 ENV THEANO_FLAGS='device=cpu,floatX=float32'
 RUN pip --no-cache-dir install git+https://github.com/Theano/Theano.git@rel-${THEANO_VERSION}
 
 # install py3-tf-cpu/gpu (Python 3, TensorFlow, CPU/GPU)
-RUN apt-get update -qq \
+RUN apt update -qq \
+    && apt-get upgrad \
  && apt-get install --no-install-recommends -y \
     # install python 3
     python3 \
@@ -89,6 +92,16 @@ EXPOSE 8888
 # for tensorboard
 EXPOSE 6006
 
+# S3
+ENV S3_LOCATION /s3data
+RUN apt-get update && apt-get install -y wget automake autotools-dev g++ git libcurl4-gnutls-dev libfuse-dev libssl-dev libxml2-dev make pkg-config && git clone https://github.com/s3fs-fuse/s3fs-fuse && wget https://github.com/Yelp/dumb-init/releases/download/v1.0.1/dumb-init_1.0.1_amd64.deb && dpkg -i dumb-init_*.deb && rm dumb-init_*.deb
+WORKDIR s3fs-fuse
+RUN ./autogen.sh && ./configure --prefix=/usr --with-openssl && make && make install
+WORKDIR /
+ADD run.sh /run.sh
+RUN chmod 755 /run.sh && rm -rf /s3fs-fuse && mkdir /s3data
+CMD dumb-init /run.sh
+VOLUME /s3data
 
 WORKDIR /srv/
 CMD /bin/bash -c 'jupyter notebook --no-browser --ip=* "$@"'
