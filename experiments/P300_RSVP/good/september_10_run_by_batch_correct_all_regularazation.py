@@ -81,6 +81,7 @@ def get_P300_model(only_P300_model, select):
 def print_predictions():
     pass
 
+np.random.seed(42)
 if __name__ == "__main__":
 
     all_subjects = [
@@ -101,14 +102,18 @@ if __name__ == "__main__":
 
     for experiment_counter, subject in enumerate(all_subjects):
 
+
+
         file_name = os.path.join(data_base_dir, subject)
         all_data_per_char, target_per_char, train_mode_per_block, all_data_per_char_as_matrix, target_per_char_as_matrix = create_data_rep_training(
             file_name, -200, 800, downsampe_params=8)
 
-        batch_size = 1
+        train_indexes = train_mode_per_block == 1
+        test_indexes = train_mode_per_block != 1
+        batch_size = 80
         select = 3
-        data_generator_batch = triplet_data_generator_no_dict(all_data_per_char_as_matrix[train_mode_per_block != 2],
-                                                              target_per_char_as_matrix[train_mode_per_block != 2],
+        data_generator_batch = triplet_data_generator_no_dict(all_data_per_char_as_matrix[train_indexes],
+                                                              target_per_char_as_matrix[train_indexes],
                                                               batch_size=batch_size, select=select, debug_mode=False)
 
 
@@ -128,20 +133,13 @@ if __name__ == "__main__":
 
 
 
-        # in order to make sure the gradient is also the same, I'm checking the weight of the model
-        # for i in range(20):
-        #     train_data = data_generator_batch.next()
-        #     print i
+        test_tags = target_per_char_as_matrix[test_indexes]
 
-        test_tags = target_per_char_as_matrix[train_mode_per_block == 2]
-
-        test_data = all_data_per_char_as_matrix[train_mode_per_block == 2].reshape(-1,
-                                                                                   all_data_per_char_as_matrix.shape[2],
-                                                                                   all_data_per_char_as_matrix.shape[3])
+        test_data = all_data_per_char_as_matrix[test_indexes].reshape(-1,all_data_per_char_as_matrix.shape[2],all_data_per_char_as_matrix.shape[3])
 
 
-        train_for_inspecting_tag = target_per_char_as_matrix[train_mode_per_block == 1]
-        train_for_inspecting_data = all_data_per_char_as_matrix[train_mode_per_block == 1].reshape(-1,
+        train_for_inspecting_tag = target_per_char_as_matrix[test_indexes]
+        train_for_inspecting_data = all_data_per_char_as_matrix[test_indexes].reshape(-1,
                                                                                    all_data_per_char_as_matrix.shape[2],
                                                                                    all_data_per_char_as_matrix.shape[3])
 
@@ -167,7 +165,7 @@ if __name__ == "__main__":
 
         # history = LossHistory()
 
-        history = model.fit_generator(data_generator_batch, 90, 1)
+        history = model.fit_generator(data_generator_batch, 36000, 20)
 
 
 
@@ -178,12 +176,12 @@ if __name__ == "__main__":
 
         x = T.dmatrix('x')
         softmax_res_func = theano.function([x], T.nnet.softmax(x))
-        print ("stam")
+
 
         actual = np.argmax(np.mean(all_prediction_P300Net.reshape((-1, 10, 30)), axis=1), axis=1);
         gt = np.argmax(np.mean(test_tags.reshape((-1, 10, 30)), axis=1), axis=1)
         accuracy = np.sum(actual == gt) / float(len(gt))
-        print "accuracy: {}".format(accuracy)
+        print "subject:{},  accuracy: {}".format(subject, accuracy)
 
         # count False positive
 
