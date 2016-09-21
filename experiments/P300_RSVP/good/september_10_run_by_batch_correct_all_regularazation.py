@@ -65,6 +65,21 @@ def get_only_P300_model_LSTM(eeg_sample_shape):
     model = Model(digit_input, out)
     return model
 
+def get_only_P300_model_CNN(eeg_sample_shape):
+    from keras.regularizers import l2
+    digit_input = Input(shape=eeg_sample_shape)
+    # x = Flatten(input_shape=eeg_sample_shape)(digit_input)
+    x = LSTM(100,input_shape=eeg_sample_shape,return_sequences=True)(digit_input)
+    x = LSTM(100, return_sequences=False)(x)
+    # x = Dense(40,activation='relu')(x)
+    out = Dense(1, activation='sigmoid')(x)
+    # out = Activation('tanh')(x)
+
+
+    model = Model(digit_input, out)
+    return model
+
+
 def get_P300_model(only_P300_model, select):
     model = only_P300_model
 
@@ -159,13 +174,13 @@ if __name__ == "__main__":
                 accuracy_train = np.sum(actual == gt) / float(len(gt))
 
 
-                print "\n*mid****accuracy*: {} *accuracy_train*:{} \n".format(accuracy,accuracy_train )
+                print "\n*{} mid****accuracy*: {} *accuracy_train*:{} \n".format(subject,accuracy,accuracy_train )
 
 
 
-        # history = LossHistory()
+        history = LossHistory()
 
-        history = model.fit_generator(data_generator_batch, 36000, 20)
+        model.fit_generator(data_generator_batch, 36000, 20, callbacks=[history])
 
 
 
