@@ -35,7 +35,7 @@ RUN ./configure
 RUN echo "ori226b  /mnt/s3 fuse.s3fs _netdev,allow_other 0 0" > /etc/fstab
 RUN echo "mount -a" >> ~/.bashrc
 RUN export PYTHONPATH="${PYTHONPATH}:/code_base"
-RUN pip --no-cache-dir install sklearn
+RUN pip --no-cache-dir install sklearn --upgrade
 RUN echo export PYTHONPATH="${PYTHONPATH}:/code_base" >> ~/.bashrc
 RUN echo ln -s /mnt/s3/dataset/ /data_set >> ~/.bashrc
 RUN echo ln -s /mnt/s3/results/ /results >> ~/.bashrc
