@@ -128,7 +128,7 @@ if __name__ == "__main__":
             file_name, -200, 800, downsampe_params=8)
 
 
-        for rep_per_sub in range(10):
+        for rep_per_sub in range(4):
 
             # seperate randomally
 
@@ -236,7 +236,7 @@ if __name__ == "__main__":
             if use_generator:
                 log_history = model.fit_generator(data_generator_batch, 7200, 20, callbacks=[history], nb_worker=1, max_q_size=1)
             else:
-                log_history = model.fit(data_generator_batch[0], data_generator_batch[1], nb_epoch=100, batch_size=900, callbacks=[history])
+                log_history = model.fit(data_generator_batch[0], data_generator_batch[1], nb_epoch=40, batch_size=900, callbacks=[history])
 
             results_directory =os.path.join(experiments_dir, RESULTS_DIR)
             if not os.path.exists(results_directory):
