@@ -117,7 +117,7 @@ if __name__ == "__main__":
                     "RSVP_Color116msVPicr.mat",
                     "RSVP_Color116msVPfat.mat",
                 ];
-    all_subjects = ["RSVP_Color116msVPgcc.mat"];
+    # all_subjects = ["RSVP_Color116msVPgcc.mat"];
 
     for experiment_counter, subject in enumerate(all_subjects):
 
