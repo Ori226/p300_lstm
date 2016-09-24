@@ -227,10 +227,11 @@ class LSTM_EEG(GeneralModel):
         super(LSTM_EEG, self).reset()
         self.model.set_weights(self.original_weights)
 
-    def __init__(self, positive_weight, _num_of_hidden_units):
+    def __init__(self, positive_weight, _num_of_hidden_units, use_validation_to_stop=False):
         super(LSTM_EEG, self).__init__()
         self.positive_weight = positive_weight
         self._num_of_hidden_units = _num_of_hidden_units
+        self.use_validation_to_stop = use_validation_to_stop
 
         '''
         define the neural network model:
@@ -245,9 +246,9 @@ class LSTM_EEG(GeneralModel):
         self.model.add(LSTM(input_dim=55, output_dim=_num_of_hidden_units, return_sequences=True))
         self.model.add(Dropout(0.3))
         self.model.add(LSTM(input_dim=_num_of_hidden_units, output_dim=_num_of_hidden_units, return_sequences=False))
-        self.model.add(Dense(2, W_regularizer=l2(0.06)))
-        self.model.add(Activation('softmax'))
-        self.model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=["accuracy"])
+        self.model.add(Dense(1, W_regularizer=l2(0.06)))
+        self.model.add(Activation('sigmoid'))
+        self.model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=["accuracy"])
 
         self.original_weights = self.model.get_weights()
         """ :type Sequential"""
@@ -255,15 +256,31 @@ class LSTM_EEG(GeneralModel):
     def fit(self, _X, y):
         from keras.callbacks import ModelCheckpoint
 
-        _y = to_categorical(y.astype(np.int))
+        # _y = to_categorical(y.astype(np.int))
+        _y = y
+        #create samples weight
+        y_weight = np.ones_like(_y)
+        y_weight[_y == 1] = self.positive_weight
 
-        checkpointer = ModelCheckpoint(filepath=r"c:\temp\25_dec_lstm_with_ds_22.hdf5", verbose=1, save_best_only=True)
-        sss = list(StratifiedShuffleSplit(_y[:, 0], n_iter=1, test_size=0.1))
-        self.model.fit(stats.zscore(_X[sss[0][0]], axis=1), _y[sss[0][0]],
+
+        if self.use_validation_to_stop:
+            checkpointer = ModelCheckpoint(filepath=r"c:\temp\25_dec_lstm_with_ds_22.hdf5", verbose=1, save_best_only=True)
+            callbacks = [checkpointer]
+            sss = list(StratifiedShuffleSplit(_y[:, 0], n_iter=1, test_size=0.1))
+            train_index = sss[0][0]
+            validation_index = sss[0][1]
+            self.model.fit(stats.zscore(_X[train_index], axis=1), _y[train_index],
                        nb_epoch=20, verbose=1, validation_data=(
-                stats.zscore(_X[sss[0][1]], axis=1), _y[sss[0][1]]),
-                       class_weight={0: 1, 1: self.positive_weight},
-                       callbacks=[checkpointer])
+                stats.zscore(_X[validation_index], axis=1), _y[validation_index]),
+                       sample_weight=y_weight,
+                       callbacks=[callbacks])
+        else:
+            self.model.fit(stats.zscore(_X, axis=1), _y,
+                           nb_epoch=20, verbose=1)
+
+
+
+
 
     def predict(self, _X):
         return self.model.predict(stats.zscore(_X, axis=1))
@@ -275,23 +292,18 @@ if __name__ == "__main__":
 
     all_subjects = ["RSVP_Color116msVPpia.mat",
                     "RSVP_Color116msVPgcd.mat",
-
                     "RSVP_Color116msVPiay.mat",
                     "RSVP_Color116msVPicr.mat",
                     "RSVP_Color116msVPfat.mat",
                     "RSVP_Color116msVPgcb.mat",
                     "RSVP_Color116msVPgcc.mat",
-
                     "RSVP_Color116msVPgcf.mat",
                     "RSVP_Color116msVPgcg.mat",
                     "RSVP_Color116msVPgch.mat",
-
                     "RSVP_Color116msVPicn.mat"];
 
-    # data_base_dir = r'C:\Users\ORI\Documents\Thesis\dataset_all'
-    # model = LDA()
+    all_subjects = ["RSVP_Color116msVPpia.mat"];
 
-    # all_models = [LSTM_EEG(1.0, 20), LSTM_EEG(50.0, 20), LSTM_EEG(50.0, 100), LSTM_EEG(1.0, 100), My_LDA()]
     all_models = [LSTM_EEG(50.0, 20), My_LDA()]
     for model_type in all_models:
 
@@ -314,12 +326,6 @@ if __name__ == "__main__":
                 model = model_type  # type: GeneralModel
                 print "starting {}:{}:{}".format(subject, model.get_name()[-7:-4], ",".join([str(x) for x in func_args.values()]))
 
-                # training_data = create_train_data(gcd_res, 0, 400, 1, True)
-                # testing_data = create_evaluation_data(gcd_res, 0, 400, 1)
-
-                # training_data, train_tags, testing_data, test_tags = create_training_and_testing(gcd_res, 0, 400, 1, True)
-
-                # model = My_LDA()
                 model.fit(training_data, train_tags)
                 prediction_res = model.predict(testing_data)
                 all_accuracies = repetition_eval.foo(test_tags, prediction_res)
@@ -331,42 +337,6 @@ if __name__ == "__main__":
                                                  ",".join([str(x) for x in func_args.values()]))
 
 
-                # print "start LSTM"
-                # model = LSTM20()
-                # model.fit(training_data, train_tags)
-                # prediction_res = model.predict(testing_data)
-                # repetition_eval.foo(test_tags, prediction_res)
-                #
-                #
-                #
-                # training_data, train_tags, testing_data, test_tags = create_training_and_testing(gcd_res, 0, 400, 1, False)
-                # model.fit(training_data, train_tags)
-                # prediction_res = model.predict(testing_data)
-                # repetition_eval.foo(test_tags, prediction_res)
-                #
-                # training_data, train_tags, testing_data, test_tags = create_training_and_testing(gcd_res, 0, 400, 8, True)
-                # model.fit(training_data, train_tags)
-                # prediction_res = model.predict(testing_data)
-                # repetition_eval.foo(test_tags, prediction_res)
-                #
-                # training_data, train_tags, testing_data, test_tags = create_training_and_testing(gcd_res, 0, 400, 8, False)
-                # model.fit(training_data, train_tags)
-                # prediction_res = model.predict(testing_data)
-                # repetition_eval.foo(test_tags, prediction_res)
-
-                # #-------------------------
-                # training_data, train_tags, testing_data, test_tags = create_training_and_testing(gcd_res, -200, 800, 1, True)
-                # model.fit(training_data, train_tags)
-                # prediction_res = model.predict(testing_data)
-                # repetition_eval.foo(test_tags, prediction_res)
-                #
-                # training_data, train_tags, testing_data, test_tags = create_training_and_testing(gcd_res, -200, 800, 1, False)
-                # model.fit(training_data, train_tags)
-                # prediction_res = model.predict(testing_data)
-                # repetition_eval.foo(test_tags, prediction_res)
-                #
-                # training_data, train_tags, testing_data, test_tags = create_training_and_testing(gcd_res, -200, 800, 8, True)
-                # model.fit(training_data, train_tags)
 
         pickle.dump(all_model_results, file=open(os.path.join(experiments_dir, model_type.get_name() + ".p"), "wb"))
 

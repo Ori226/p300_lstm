@@ -219,7 +219,7 @@ def triplet_data_generator_no_dict(data, tags, batch_size, select=3, outof=10, d
             if counter_i == 5:
                 break
 
-            batch_data = np.zeros((batch_size, magic_number, time_samples_dim_size, channel_dim_size), dtype=np.float64)
+            batch_data = np.zeros((batch_size, magic_number, time_samples_dim_size, channel_dim_size), dtype=np.float32)
             batch_tags = np.zeros((batch_size, magic_number ), dtype=np.int8)
             counter = 0
             for single_combination in shuffled_combination[i:min(i +batch_size,len(shuffled_combination) )]:
@@ -240,6 +240,47 @@ def triplet_data_generator_no_dict(data, tags, batch_size, select=3, outof=10, d
             yield noramlized_batch_data.reshape(noramlized_batch_data.shape[0]*noramlized_batch_data.shape[1],
                                                 noramlized_batch_data.shape[2],noramlized_batch_data.shape[3]).astype(np.float32), batch_tags.flatten()
             # yield batch_tags.T.reshape(-1,1), batch_tags.T.reshape(-1,1)
+
+
+def simple_data_generator_no_dict(data, tags):
+    noramlized_batch_data = stats.zscore(data, axis=2)
+
+    return data.reshape(noramlized_batch_data.shape[0]*noramlized_batch_data.shape[1],
+                                                noramlized_batch_data.shape[2],noramlized_batch_data.shape[3]).astype(np.float32), tags.flatten()
+
+    # while True:
+    #     if debug_mode:
+    #
+    #         r = np.random.RandomState(1234)
+    #         shuffled_combination = r.permutation(all_combination)
+    #     else:
+    #         shuffled_combination = np.random.permutation(all_combination)
+    #     for counter_i ,i in enumerate(range(0,len(shuffled_combination), batch_size)):
+    #         # print "{}:{}".format(i, min(i +batch_size,len(shuffled_combination) ))
+    #         if counter_i == 5:
+    #             break
+    #
+    #         batch_data = np.zeros((batch_size, magic_number, time_samples_dim_size, channel_dim_size), dtype=np.float32)
+    #         batch_tags = np.zeros((batch_size, magic_number ), dtype=np.int8)
+    #         counter = 0
+    #         for single_combination in shuffled_combination[i:min(i +batch_size,len(shuffled_combination) )]:
+    #
+    #             batch_data[counter, :, :, :] = np.vstack([stats.zscore(data[item],axis=1) for item in single_combination])
+    #             batch_tags[counter, :] = np.vstack([tags[item] for item in single_combination]).flatten()
+    #             counter += 1
+    #
+    #         # input_dict = dict(
+    #         #     [["positive_item_input_{}".format(i), stats.zscore(batch_data[i], axis=1)] for i in
+    #         #      range(90)])
+    #
+    #         # input_dict['triplet_loss'] = batch_tags
+    #         noramlized_batch_data = stats.zscore(batch_data, axis=2)
+    #         # noramlized_batch_data = batch_data
+
+            # yield noramlized_batch_data.reshape(-1, noramlized_batch_data.shape[2], noramlized_batch_data.shape[3]), batch_tags.T.flatten()
+
+            # yield batch_tags.T.reshape(-1,1), batch_tags.T.reshape(-1,1)
+
 
 def triplet_data_generator_no_dict_random(data, tags, batch_size, select=3, outof=10, debug_mode = False):
     from scipy import stats
