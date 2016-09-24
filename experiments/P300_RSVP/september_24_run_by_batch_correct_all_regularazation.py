@@ -128,132 +128,134 @@ if __name__ == "__main__":
             file_name, -200, 800, downsampe_params=8)
 
 
-        # seperate randomally
+        for rep_per_sub in range(10):
 
-        batch_size = 20
-        select = 1
+            # seperate randomally
 
-        from sklearn import cross_validation
+            batch_size = 20
+            select = 1
 
-        train_as_p300 = False
-        if train_as_p300:
-            train_indexes = train_mode_per_block == 1
-            test_indexes = train_mode_per_block != 1
-            data_generator_batch = triplet_data_generator_no_dict(all_data_per_char_as_matrix[train_indexes],
-                                                              target_per_char_as_matrix[train_indexes],
-                                                              batch_size=batch_size, select=select, debug_mode=False)
-        else:
-            # cross_validation_indexes = list(cross_validation.ShuffleSplit(len(train_mode_per_block)/10, n_iter=1,
-            #                                                               test_size=.667, random_state=42))
-            #
-            # def flatten_repetitions(data_to_flatten):
-            #     return np.reshape(np.reshape(data_to_flatten.T * 10, (-1, 1)) + np.arange(10), (-1))
-            #
-            # train_indexes = flatten_repetitions(cross_validation_indexes[0][0])
-            # test_indexes = flatten_repetitions(cross_validation_indexes[0][1])
-            train_indexes = train_mode_per_block == 1
-            test_indexes = train_mode_per_block != 1
+            from sklearn import cross_validation
 
-            data_generator_batch = simple_data_generator_no_dict(all_data_per_char_as_matrix[train_indexes],
-                                                              target_per_char_as_matrix[train_indexes])
+            train_as_p300 = False
+            if train_as_p300:
+                train_indexes = train_mode_per_block == 1
+                test_indexes = train_mode_per_block != 1
+                data_generator_batch = triplet_data_generator_no_dict(all_data_per_char_as_matrix[train_indexes],
+                                                                  target_per_char_as_matrix[train_indexes],
+                                                                  batch_size=batch_size, select=select, debug_mode=False)
+            else:
+                # cross_validation_indexes = list(cross_validation.ShuffleSplit(len(train_mode_per_block)/10, n_iter=1,
+                #                                                               test_size=.667, random_state=42))
+                #
+                # def flatten_repetitions(data_to_flatten):
+                #     return np.reshape(np.reshape(data_to_flatten.T * 10, (-1, 1)) + np.arange(10), (-1))
+                #
+                # train_indexes = flatten_repetitions(cross_validation_indexes[0][0])
+                # test_indexes = flatten_repetitions(cross_validation_indexes[0][1])
+                train_indexes = train_mode_per_block == 1
+                test_indexes = train_mode_per_block != 1
 
-
-
-
+                data_generator_batch = simple_data_generator_no_dict(all_data_per_char_as_matrix[train_indexes],
+                                                                  target_per_char_as_matrix[train_indexes])
 
 
 
 
 
 
-        from keras.models import Sequential
-
-        from keras.layers import merge, Input, Dense, Flatten, Activation, Lambda, LSTM, noise
-
-        eeg_sample_shape = (25, 55)
-        only_p300_model_1 = get_only_P300_model_LSTM(eeg_sample_shape)
-
-        use_p300net = False
-        if use_p300net:
-            model = get_P300_model(only_p300_model_1, select=select)
-        else:
-
-            only_p300_model_1.compile(optimizer = 'rmsprop',loss = 'binary_crossentropy', metrics=['accuracy'], )
-            model= only_p300_model_1
-        print "after compile"
 
 
 
 
-        test_tags = target_per_char_as_matrix[test_indexes]
+            from keras.models import Sequential
 
-        test_data = all_data_per_char_as_matrix[test_indexes].reshape(-1,all_data_per_char_as_matrix.shape[2],all_data_per_char_as_matrix.shape[3])
+            from keras.layers import merge, Input, Dense, Flatten, Activation, Lambda, LSTM, noise
 
+            eeg_sample_shape = (25, 55)
+            only_p300_model_1 = get_only_P300_model_LSTM(eeg_sample_shape)
 
-        train_for_inspecting_tag = target_per_char_as_matrix[train_indexes]
-        train_for_inspecting_data = all_data_per_char_as_matrix[train_indexes].reshape(-1,
-                                                                                   all_data_per_char_as_matrix.shape[2],
-                                                                                   all_data_per_char_as_matrix.shape[3])
+            use_p300net = False
+            if use_p300net:
+                model = get_P300_model(only_p300_model_1, select=select)
+            else:
 
-        class LossHistory(keras.callbacks.Callback):
-
-            def on_epoch_end(self, epoch, logs={}):
-                from sklearn.metrics import roc_auc_score
-
-                all_prediction_P300Net = model.predict(stats.zscore(test_data, axis=1).astype(np.float32))
-                actual = np.argmax(np.mean(all_prediction_P300Net.reshape((-1, 10, 30)), axis=1), axis=1);
-                gt = np.argmax(np.mean(test_tags.reshape((-1, 10, 30)), axis=1), axis=1)
-                tests_accuracy = np.sum(actual == gt) / float(len(gt))
-                auc_score_test = roc_auc_score(test_tags.flatten(), all_prediction_P300Net)
-
-                all_prediction_P300Net = model.predict(stats.zscore(train_for_inspecting_data, axis=1).astype(np.float32))
-                actual = np.argmax(np.mean(all_prediction_P300Net.reshape((-1, 10, 30)), axis=1), axis=1);
-                gt = np.argmax(np.mean(train_for_inspecting_tag.reshape((-1, 10, 30)), axis=1), axis=1)
-                train_accuracy = np.sum(actual == gt) / float(len(gt))
-                auc_score_train = roc_auc_score(train_for_inspecting_tag.flatten(), all_prediction_P300Net)
-
-
-                logs['tests_accuracy'] = tests_accuracy
-                logs['accuracy_train'] = train_accuracy
-                logs['auc_score_train'] = auc_score_train
-                logs['auc_score_test'] = auc_score_test
-                logs['subject'] = subject
+                only_p300_model_1.compile(optimizer = 'rmsprop',loss = 'binary_crossentropy', metrics=['accuracy'], )
+                model= only_p300_model_1
+            print "after compile"
 
 
 
-                print "\n*{} mid****accuracy*: {} *accuracy_train*:{} auc_score_train:{} auc_score_test:{}\n"\
-                    .format(subject,tests_accuracy,train_accuracy, auc_score_train, auc_score_test)
+
+            test_tags = target_per_char_as_matrix[test_indexes]
+
+            test_data = all_data_per_char_as_matrix[test_indexes].reshape(-1,all_data_per_char_as_matrix.shape[2],all_data_per_char_as_matrix.shape[3])
+
+
+            train_for_inspecting_tag = target_per_char_as_matrix[train_indexes]
+            train_for_inspecting_data = all_data_per_char_as_matrix[train_indexes].reshape(-1,
+                                                                                       all_data_per_char_as_matrix.shape[2],
+                                                                                       all_data_per_char_as_matrix.shape[3])
+
+            class LossHistory(keras.callbacks.Callback):
+
+                def on_epoch_end(self, epoch, logs={}):
+                    from sklearn.metrics import roc_auc_score
+
+                    all_prediction_P300Net = model.predict(stats.zscore(test_data, axis=1).astype(np.float32))
+                    actual = np.argmax(np.mean(all_prediction_P300Net.reshape((-1, 10, 30)), axis=1), axis=1);
+                    gt = np.argmax(np.mean(test_tags.reshape((-1, 10, 30)), axis=1), axis=1)
+                    tests_accuracy = np.sum(actual == gt) / float(len(gt))
+                    auc_score_test = roc_auc_score(test_tags.flatten(), all_prediction_P300Net)
+
+                    all_prediction_P300Net = model.predict(stats.zscore(train_for_inspecting_data, axis=1).astype(np.float32))
+                    actual = np.argmax(np.mean(all_prediction_P300Net.reshape((-1, 10, 30)), axis=1), axis=1);
+                    gt = np.argmax(np.mean(train_for_inspecting_tag.reshape((-1, 10, 30)), axis=1), axis=1)
+                    train_accuracy = np.sum(actual == gt) / float(len(gt))
+                    auc_score_train = roc_auc_score(train_for_inspecting_tag.flatten(), all_prediction_P300Net)
+
+
+                    logs['tests_accuracy'] = tests_accuracy
+                    logs['accuracy_train'] = train_accuracy
+                    logs['auc_score_train'] = auc_score_train
+                    logs['auc_score_test'] = auc_score_test
+                    logs['subject'] = subject
 
 
 
-        history = LossHistory()
-
-        # model.fit_generator(data_generator_batch, 7200, 20, callbacks=[history],nb_worker=1,max_q_size=1)
-
-        use_generator = False
-        if use_generator:
-            log_history = model.fit_generator(data_generator_batch, 7200, 20, callbacks=[history], nb_worker=1, max_q_size=1)
-        else:
-            log_history = model.fit(data_generator_batch[0], data_generator_batch[1], nb_epoch=1, batch_size=900, callbacks=[history])
-
-        results_directory =os.path.join(experiments_dir, RESULTS_DIR)
-        if not os.path.exists(results_directory):
-            os.makedirs(results_directory)
-
-        np.save(os.path.join(experiments_dir, RESULTS_DIR, subject[-7:-4]+".npy"), log_history.history)
-
-        all_prediction_P300Net = model.predict(stats.zscore(test_data,axis=1).astype(np.float32))
-        import theano
-        import theano.tensor as T
-
-        x = T.dmatrix('x')
-        softmax_res_func = theano.function([x], T.nnet.softmax(x))
+                    print "\n*{} mid****accuracy*: {} *accuracy_train*:{} auc_score_train:{} auc_score_test:{}\n"\
+                        .format(subject,tests_accuracy,train_accuracy, auc_score_train, auc_score_test)
 
 
-        actual = np.argmax(np.mean(all_prediction_P300Net.reshape((-1, 10, 30)), axis=1), axis=1);
-        gt = np.argmax(np.mean(test_tags.reshape((-1, 10, 30)), axis=1), axis=1)
-        accuracy = np.sum(actual == gt) / float(len(gt))
-        print "subject:{},  accuracy: {}".format(subject, accuracy)
+
+            history = LossHistory()
+
+            # model.fit_generator(data_generator_batch, 7200, 20, callbacks=[history],nb_worker=1,max_q_size=1)
+
+            use_generator = False
+            if use_generator:
+                log_history = model.fit_generator(data_generator_batch, 7200, 20, callbacks=[history], nb_worker=1, max_q_size=1)
+            else:
+                log_history = model.fit(data_generator_batch[0], data_generator_batch[1], nb_epoch=100, batch_size=900, callbacks=[history])
+
+            results_directory =os.path.join(experiments_dir, RESULTS_DIR)
+            if not os.path.exists(results_directory):
+                os.makedirs(results_directory)
+
+            np.save(os.path.join(experiments_dir, RESULTS_DIR, subject[-7:-4]+"_{}_".format(rep_per_sub)+".npy"), log_history.history)
+
+            all_prediction_P300Net = model.predict(stats.zscore(test_data,axis=1).astype(np.float32))
+            import theano
+            import theano.tensor as T
+
+            x = T.dmatrix('x')
+            softmax_res_func = theano.function([x], T.nnet.softmax(x))
+
+
+            actual = np.argmax(np.mean(all_prediction_P300Net.reshape((-1, 10, 30)), axis=1), axis=1);
+            gt = np.argmax(np.mean(test_tags.reshape((-1, 10, 30)), axis=1), axis=1)
+            accuracy = np.sum(actual == gt) / float(len(gt))
+            print "subject:{},  accuracy: {}".format(subject, accuracy)
 
         # count False positive
 

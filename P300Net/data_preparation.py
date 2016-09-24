@@ -1,5 +1,8 @@
 import numpy as np
 import random
+
+import sklearn
+
 from OriKerasExtension.ThesisHelper import readCompleteMatFile, ExtractDataVer4
 from experiments.P300_RSVP.common import downsample_data
 import matplotlib.pyplot as plt;
@@ -245,8 +248,9 @@ def triplet_data_generator_no_dict(data, tags, batch_size, select=3, outof=10, d
 def simple_data_generator_no_dict(data, tags):
     noramlized_batch_data = stats.zscore(data, axis=2)
 
-    return data.reshape(noramlized_batch_data.shape[0]*noramlized_batch_data.shape[1],
-                                                noramlized_batch_data.shape[2],noramlized_batch_data.shape[3]).astype(np.float32), tags.flatten()
+    shuffle_X, shuffle_y= sklearn.utils.shuffle(noramlized_batch_data, tags)
+    return data.reshape(shuffle_X.shape[0]*shuffle_X.shape[1],
+                        shuffle_X.shape[2],shuffle_X.shape[3]).astype(np.float32), shuffle_y.flatten()
 
     # while True:
     #     if debug_mode:
