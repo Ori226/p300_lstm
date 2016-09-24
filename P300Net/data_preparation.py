@@ -216,7 +216,8 @@ def triplet_data_generator_no_dict(data, tags, batch_size, select=3, outof=10, d
             r = np.random.RandomState(1234)
             shuffled_combination = r.permutation(all_combination)
         else:
-            shuffled_combination = np.random.permutation(all_combination)
+            # shuffled_combination = np.random.permutation(all_combination)
+            shuffled_combination = all_combination
         for counter_i ,i in enumerate(range(0,len(shuffled_combination), batch_size)):
             # print "{}:{}".format(i, min(i +batch_size,len(shuffled_combination) ))
 
@@ -253,8 +254,8 @@ def simple_data_generator_no_dict(data, tags, shuffle_data=True):
         shuffle_X, shuffle_y = sklearn.utils.shuffle(noramlized_batch_data, tags)
     else:
         shuffle_X, shuffle_y = noramlized_batch_data, tags
-    return data.reshape(shuffle_X.shape[0]*shuffle_X.shape[1],
-                        shuffle_X.shape[2],shuffle_X.shape[3]).astype(np.float32), shuffle_y.flatten()
+    return shuffle_X.reshape(shuffle_X.shape[0]*shuffle_X.shape[1],
+                             shuffle_X.shape[2],shuffle_X.shape[3]).astype(np.float32), shuffle_y.flatten()
 
     # while True:
     #     if debug_mode:

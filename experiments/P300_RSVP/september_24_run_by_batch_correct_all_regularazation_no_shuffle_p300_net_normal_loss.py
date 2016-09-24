@@ -1,7 +1,8 @@
 import keras
 
 from P300Net.data_preparation import create_data_rep_training, triplet_data_generator_no_dict, \
-    get_number_of_samples_per_epoch_batch_mode, train_and_valid_generator, simple_data_generator_no_dict
+    get_number_of_samples_per_epoch_batch_mode, train_and_valid_generator, simple_data_generator_no_dict, \
+    get_number_of_samples_per_epoch
 
 from experiments.P300_RSVP.common import *
 from sklearn.utils import shuffle
@@ -132,18 +133,25 @@ if __name__ == "__main__":
 
             # seperate randomally
 
-            batch_size = 20
-            select = 1
+            batch_size = 3
+            select = 10
 
             from sklearn import cross_validation
 
-            train_as_p300 = False
+            train_as_p300 = True
             if train_as_p300:
                 train_indexes = train_mode_per_block == 1
                 test_indexes = train_mode_per_block != 1
+                number_of_samples_in_epoch = get_number_of_samples_per_epoch(
+                    all_data_per_char_as_matrix[train_indexes].shape[0], outof=10, select=select)*30*10
                 data_generator_batch = triplet_data_generator_no_dict(all_data_per_char_as_matrix[train_indexes],
                                                                   target_per_char_as_matrix[train_indexes],
-                                                                  batch_size=batch_size, select=select, debug_mode=False)
+                                                                  batch_size=batch_size,
+                                                                      select=select,
+                                                                      debug_mode=False,
+                                                                      break_in_the_middle=False)
+
+
             else:
                 # cross_validation_indexes = list(cross_validation.ShuffleSplit(len(train_mode_per_block)/10, n_iter=1,
                 #                                                               test_size=.667, random_state=42))
@@ -175,8 +183,8 @@ if __name__ == "__main__":
             eeg_sample_shape = (25, 55)
             only_p300_model_1 = get_only_P300_model_LSTM(eeg_sample_shape)
 
-            use_p300net = False
-            if use_p300net:
+
+            if train_as_p300:
                 model = get_P300_model(only_p300_model_1, select=select)
             else:
 
@@ -232,11 +240,13 @@ if __name__ == "__main__":
 
             # model.fit_generator(data_generator_batch, 7200, 20, callbacks=[history],nb_worker=1,max_q_size=1)
 
-            use_generator = False
-            if use_generator:
-                log_history = model.fit_generator(data_generator_batch, 7200, 20, callbacks=[history], nb_worker=1, max_q_size=1)
+
+            if train_as_p300:
+
+
+                log_history = model.fit_generator(data_generator_batch, samples_per_epoch = number_of_samples_in_epoch, nb_epoch=40, callbacks=[history], nb_worker=1, max_q_size=1)
             else:
-                log_history = model.fit(data_generator_batch[0], data_generator_batch[1], nb_epoch=40, batch_size=900, callbacks=[history], shuffle=False)
+                log_history = model.fit(data_generator_batch[0], data_generator_batch[1], nb_epoch=40, batch_size=900, callbacks=[history])
 
             results_directory =os.path.join(experiments_dir, RESULTS_DIR)
             if not os.path.exists(results_directory):
