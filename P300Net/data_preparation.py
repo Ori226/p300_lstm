@@ -245,10 +245,12 @@ def triplet_data_generator_no_dict(data, tags, batch_size, select=3, outof=10, d
             # yield batch_tags.T.reshape(-1,1), batch_tags.T.reshape(-1,1)
 
 
-def simple_data_generator_no_dict(data, tags):
+def simple_data_generator_no_dict(data, tags, shuffle_data=True):
     noramlized_batch_data = stats.zscore(data, axis=2)
-
-    shuffle_X, shuffle_y= sklearn.utils.shuffle(noramlized_batch_data, tags)
+    if shuffle_data:
+        shuffle_X, shuffle_y = sklearn.utils.shuffle(noramlized_batch_data, tags)
+    else:
+        shuffle_X, shuffle_y = noramlized_batch_data, tags
     return data.reshape(shuffle_X.shape[0]*shuffle_X.shape[1],
                         shuffle_X.shape[2],shuffle_X.shape[3]).astype(np.float32), shuffle_y.flatten()
 
