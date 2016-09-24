@@ -198,7 +198,7 @@ def get_number_of_samples_per_epoch_batch_mode(number_of_samples,select=3, outof
     dictionary_size = 30
     return len( _get_all_possible_combination(np.arange(number_of_samples), outof, select))*select * dictionary_size
 
-def triplet_data_generator_no_dict(data, tags, batch_size, select=3, outof=10, debug_mode = False):
+def triplet_data_generator_no_dict(data, tags, batch_size, select=3, outof=10, debug_mode = False, break_in_the_middle=True):
     from scipy import stats
     stimuli_category_size = 30
     number_of_repetition = select
@@ -219,8 +219,10 @@ def triplet_data_generator_no_dict(data, tags, batch_size, select=3, outof=10, d
             shuffled_combination = np.random.permutation(all_combination)
         for counter_i ,i in enumerate(range(0,len(shuffled_combination), batch_size)):
             # print "{}:{}".format(i, min(i +batch_size,len(shuffled_combination) ))
-            if counter_i == 5:
-                break
+
+            if break_in_the_middle:
+                if counter_i == 5:
+                    break
 
             batch_data = np.zeros((batch_size, magic_number, time_samples_dim_size, channel_dim_size), dtype=np.float32)
             batch_tags = np.zeros((batch_size, magic_number ), dtype=np.int8)
