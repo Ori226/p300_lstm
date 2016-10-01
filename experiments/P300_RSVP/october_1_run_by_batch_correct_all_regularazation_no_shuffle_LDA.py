@@ -1,4 +1,5 @@
 import keras
+from sklearn.metrics import roc_auc_score
 
 from P300Net.data_preparation import create_data_rep_training, triplet_data_generator_no_dict, \
     get_number_of_samples_per_epoch_batch_mode, train_and_valid_generator, simple_data_generator_no_dict
@@ -6,6 +7,7 @@ from P300Net.data_preparation import create_data_rep_training, triplet_data_gene
 from experiments.P300_RSVP.common import *
 from sklearn.utils import shuffle
 from keras import backend as K
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 from keras.models import Model
 import scipy
 
@@ -223,6 +225,16 @@ if __name__ == "__main__":
                                                                                        all_data_per_char_as_matrix.shape[3])
 
 
+
+
+            def predict_using_model(model, data,tags):
+                all_prediction_P300Net = model.predict(data)
+                actual = np.argmax(np.mean(all_prediction_P300Net.reshape((-1, 10, 30)), axis=1), axis=1);
+                gt = np.argmax(np.mean(tags.reshape((-1, 10, 30)), axis=1), axis=1)
+                accuracy = np.sum(actual == gt) / float(len(gt))
+                auc_score_test = roc_auc_score(tags.flatten(), all_prediction_P300Net)
+                return accuracy, auc_score_test
+
             class LossHistory(keras.callbacks.Callback):
 
                 def on_epoch_end(self, epoch, logs={}):
@@ -263,35 +275,26 @@ if __name__ == "__main__":
 
 
 
-            history = LossHistory()
+
 
             # model.fit_generator(data_generator_batch, 7200, 20, callbacks=[history],nb_worker=1,max_q_size=1)
 
-            use_generator = False
-            if use_generator:
-                log_history = model.fit_generator(data_generator_batch, 7200, 20, callbacks=[history], nb_worker=1, max_q_size=1)
-            else:
-                log_history = model.fit(data_generator_batch[0], data_generator_batch[1], nb_epoch=21, batch_size=900,verbose=2,
-                                        callbacks=[history], shuffle=False, validation_split=0.1)
-
-            results_directory =os.path.join(experiments_dir, RESULTS_DIR)
+            model = LDA()
+            train_data = all_data_per_char_as_matrix[train_indexes]
+            train_tags = data_generator_batch[1]
+            model.fit(train_data.reshape(train_data.shape[0]*train_data.shape[1],-1), train_tags)
+            test_data = all_data_per_char_as_matrix[test_indexes]
+            test_tags = target_per_char_as_matrix [test_indexes].reshape(-1,1)
+            accuracy, auc_score_test = predict_using_model(model, test_data.reshape(test_data.shape[0]*test_data.shape[1], -1), test_tags)
+            accuracy_train, auc_score_train = predict_using_model(model,
+                                                           train_data.reshape(train_data.shape[0] * train_data.shape[1],
+                                                                             -1), train_tags)
+            results = dict(subject=subject, accuracy=accuracy, auc_score_test=auc_score_test, accuracy_train=accuracy_train, auc_score_train=auc_score_train)
+            results_directory = os.path.join(experiments_dir, RESULTS_DIR)
             if not os.path.exists(results_directory):
                 os.makedirs(results_directory)
+            np.save(os.path.join(experiments_dir, RESULTS_DIR, subject[-7:-4]+"_{}_".format(rep_per_sub)+".npy"), results )
 
-            np.save(os.path.join(experiments_dir, RESULTS_DIR, subject[-7:-4]+"_{}_".format(rep_per_sub)+".npy"), log_history.history)
-
-            all_prediction_P300Net = model.predict(stats.zscore(test_data,axis=1).astype(np.float32))
-            import theano
-            import theano.tensor as T
-
-            x = T.dmatrix('x')
-            softmax_res_func = theano.function([x], T.nnet.softmax(x))
-
-
-            actual = np.argmax(np.mean(all_prediction_P300Net.reshape((-1, 10, 30)), axis=1), axis=1);
-            gt = np.argmax(np.mean(test_tags.reshape((-1, 10, 30)), axis=1), axis=1)
-            accuracy = np.sum(actual == gt) / float(len(gt))
-            print "subject:{},  accuracy: {}".format(subject, accuracy)
 
         # count False positive
 
