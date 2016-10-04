@@ -195,7 +195,7 @@ if __name__ == "__main__":
             from keras.layers import merge, Input, Dense, Flatten, Activation, Lambda, LSTM, noise
 
             eeg_sample_shape = (25, 55)
-            only_p300_model_1 = get_only_P300_model(eeg_sample_shape)
+            only_p300_model_1 = get_only_P300_model_LSTM(eeg_sample_shape)
 
             use_p300net = False
             if use_p300net:
