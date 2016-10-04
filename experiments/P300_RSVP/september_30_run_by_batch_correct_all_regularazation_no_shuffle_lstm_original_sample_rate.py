@@ -271,7 +271,7 @@ if __name__ == "__main__":
             if use_generator:
                 log_history = model.fit_generator(data_generator_batch, 7200, 20, callbacks=[history], nb_worker=1, max_q_size=1)
             else:
-                log_history = model.fit(data_generator_batch[0], data_generator_batch[1], nb_epoch=21, batch_size=900,verbose=2,
+                log_history = model.fit(data_generator_batch[0], data_generator_batch[1], nb_epoch=21, batch_size=900,verbose=1,
                                         callbacks=[history], shuffle=False, validation_split=0.1)
 
             results_directory =os.path.join(experiments_dir, RESULTS_DIR)
