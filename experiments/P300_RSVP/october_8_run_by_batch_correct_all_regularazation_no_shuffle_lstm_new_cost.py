@@ -45,10 +45,10 @@ def get_only_P300_model(eeg_sample_shape):
     from keras.layers.normalization import BatchNormalization
     digit_input = Input(shape=eeg_sample_shape)
     x = Flatten(input_shape=eeg_sample_shape)(digit_input)
-    x = Dense(100,activation='tanh')(x)
+    x = Dense(100,activation='relu')(x)
     x= BatchNormalization()(x)
-    x = Dense(100,activation='tanh')(x)
-    out = Dense(1, activation='sigmoid')(x)
+    x = Dense(100,activation='relu')(x)
+    out = Dense(1, activation='tanh')(x)
     # out = Activation('tanh')(x)
 
 
@@ -61,8 +61,8 @@ def get_only_P300_model_LSTM(eeg_sample_shape):
     digit_input = Input(shape=eeg_sample_shape)
     # x = Flatten(input_shape=eeg_sample_shape)(digit_input)
     x = noise.GaussianNoise(sigma=0.0)(digit_input)
-    x = LSTM(100,input_shape=eeg_sample_shape,return_sequences=True)(x)
-    x = LSTM(100, return_sequences=False)(x)
+    # x = LSTM(100,input_shape=eeg_sample_shape,return_sequences=True, consume_less='mem')(x)
+    x = LSTM(100, return_sequences=False, consume_less='mem')(x)
     # x = Dense(40,activation='relu')(x)
     out = Dense(1, activation='sigmoid')(x)
     # out = Activation('tanh')(x)
@@ -75,7 +75,7 @@ def get_only_P300_model_CNN(eeg_sample_shape):
     from keras.regularizers import l2
     digit_input = Input(shape=eeg_sample_shape)
     # x = Flatten(input_shape=eeg_sample_shape)(digit_input)
-    x = LSTM(100, input_shape=eeg_sample_shape,return_sequences=True)(digit_input)
+    x = LSTM(100,input_shape=eeg_sample_shape,return_sequences=True)(digit_input)
     x = LSTM(100, return_sequences=False)(x)
     # x = Dense(40,activation='relu')(x)
     out = Dense(1, activation='sigmoid')(x)
@@ -95,7 +95,7 @@ def get_P300_model(only_P300_model, select):
         final_val = K.mean(K.categorical_crossentropy(y_pred_reshaped, y_true_reshaped))
         return final_val + y_pred * 0
 
-    model.compile(optimizer='rmsprop',
+    model.compile(optimizer='adadelta',
                   loss=identity_loss_v3)
     return model
 
@@ -108,11 +108,10 @@ if __name__ == "__main__":
 
 
 
-    all_subjects = [
+    all_subjects = ["RSVP_Color116msVPgcd.mat",
                     "RSVP_Color116msVPgcc.mat",
                     "RSVP_Color116msVPpia.mat",
                     "RSVP_Color116msVPgcb.mat",
-                    "RSVP_Color116msVPgcd.mat",
                     "RSVP_Color116msVPgcf.mat",
                     "RSVP_Color116msVPgcg.mat",
                     "RSVP_Color116msVPgch.mat",
@@ -195,7 +194,7 @@ if __name__ == "__main__":
             from keras.layers import merge, Input, Dense, Flatten, Activation, Lambda, LSTM, noise
 
             eeg_sample_shape = (25, 55)
-            only_p300_model_1 = get_only_P300_model(eeg_sample_shape)
+            only_p300_model_1 = get_only_P300_model_LSTM(eeg_sample_shape)
 
             use_p300net = False
             if use_p300net:

@@ -45,10 +45,10 @@ def get_only_P300_model(eeg_sample_shape):
     from keras.layers.normalization import BatchNormalization
     digit_input = Input(shape=eeg_sample_shape)
     x = Flatten(input_shape=eeg_sample_shape)(digit_input)
-    x = Dense(100,activation='tanh')(x)
+    x = Dense(100,activation='relu')(x)
     x= BatchNormalization()(x)
-    x = Dense(100,activation='tanh')(x)
-    out = Dense(1, activation='sigmoid')(x)
+    x = Dense(100,activation='relu')(x)
+    out = Dense(1, activation='tanh')(x)
     # out = Activation('tanh')(x)
 
 
@@ -60,10 +60,40 @@ def get_only_P300_model_LSTM(eeg_sample_shape):
     from keras.regularizers import l2
     digit_input = Input(shape=eeg_sample_shape)
     # x = Flatten(input_shape=eeg_sample_shape)(digit_input)
-    x = noise.GaussianNoise(sigma=0.0)(digit_input)
-    x = LSTM(100,input_shape=eeg_sample_shape,return_sequences=True)(x)
-    x = LSTM(100, return_sequences=False)(x)
+    x = noise.GaussianNoise(sigma=0.1)(digit_input)
+    x = LSTM(100,input_shape=eeg_sample_shape,return_sequences=True, consume_less='mem')(x)
+    x = LSTM(100, return_sequences=False, consume_less='mem')(x)
     # x = Dense(40,activation='relu')(x)
+    out = Dense(1, activation='sigmoid')(x)
+    # out = Activation('tanh')(x)
+
+
+    model = Model(digit_input, out)
+    return model
+
+
+def get_only_P300_model_LSTM_CNN(eeg_sample_shape):
+    from keras.regularizers import l2
+    digit_input = Input(shape=eeg_sample_shape)
+    # x = Flatten(input_shape=eeg_sample_shape)(digit_input)
+    from keras.layers.core import Reshape
+    x = noise.GaussianNoise(sigma=0.01)(digit_input)
+    x = Reshape((1, eeg_sample_shape[0], eeg_sample_shape[1]))(x)
+    x = Convolution2D(nb_filter=10,
+                      nb_col=eeg_sample_shape[1],
+                      nb_row=1,
+                      border_mode='valid',
+                      init='glorot_uniform', activation='tanh')(x)
+    # x = Activation(Activation('tanh'))(x)
+    # result shape (10,25,1)
+
+
+    x = Permute((3,2, 1))(x)
+    x = Reshape((eeg_sample_shape[0], 10))(x)
+    # x = LSTM(10,return_sequences=True, consume_less='mem')(x)
+    x = LSTM(100,return_sequences=False, consume_less='mem')(x)
+    # x = LSTM(100, return_sequences=False, consume_less='mem')(x)
+    x = Dense(10,activation='tanh')(x)
     out = Dense(1, activation='sigmoid')(x)
     # out = Activation('tanh')(x)
 
@@ -75,7 +105,7 @@ def get_only_P300_model_CNN(eeg_sample_shape):
     from keras.regularizers import l2
     digit_input = Input(shape=eeg_sample_shape)
     # x = Flatten(input_shape=eeg_sample_shape)(digit_input)
-    x = LSTM(100, input_shape=eeg_sample_shape,return_sequences=True)(digit_input)
+    x = LSTM(100,input_shape=eeg_sample_shape,return_sequences=True)(digit_input)
     x = LSTM(100, return_sequences=False)(x)
     # x = Dense(40,activation='relu')(x)
     out = Dense(1, activation='sigmoid')(x)
@@ -108,19 +138,21 @@ if __name__ == "__main__":
 
 
 
-    all_subjects = [
+    all_subjects = ["RSVP_Color116msVPgcg.mat",
+                    "RSVP_Color116msVPgcd.mat",
                     "RSVP_Color116msVPgcc.mat",
                     "RSVP_Color116msVPpia.mat",
                     "RSVP_Color116msVPgcb.mat",
-                    "RSVP_Color116msVPgcd.mat",
                     "RSVP_Color116msVPgcf.mat",
-                    "RSVP_Color116msVPgcg.mat",
                     "RSVP_Color116msVPgch.mat",
                     "RSVP_Color116msVPiay.mat",
                     "RSVP_Color116msVPicn.mat",
                     "RSVP_Color116msVPicr.mat",
                     "RSVP_Color116msVPfat.mat",
                 ];
+
+    all_subjects = ["RSVP_Color116msVPgcg.mat"];
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-start_sub_idx", help="first sub",
                         type=int, default=0)
@@ -149,7 +181,7 @@ if __name__ == "__main__":
             # seperate randomally
 
             batch_size = 20
-            select = 1
+            select = 10
 
 
 
@@ -192,10 +224,11 @@ if __name__ == "__main__":
 
             from keras.models import Sequential
 
-            from keras.layers import merge, Input, Dense, Flatten, Activation, Lambda, LSTM, noise
+            from keras.layers import merge, Input, Dense, Flatten, Activation, Lambda, LSTM, noise, Convolution2D, \
+                Permute
 
             eeg_sample_shape = (25, 55)
-            only_p300_model_1 = get_only_P300_model(eeg_sample_shape)
+            only_p300_model_1 = get_only_P300_model_LSTM_CNN(eeg_sample_shape)
 
             use_p300net = False
             if use_p300net:
@@ -218,16 +251,39 @@ if __name__ == "__main__":
 
 
             train_for_inspecting_tag = target_per_char_as_matrix[train_indexes]
+
+
+
             train_for_inspecting_data = all_data_per_char_as_matrix[train_indexes].reshape(-1,
                                                                                        all_data_per_char_as_matrix.shape[2],
                                                                                        all_data_per_char_as_matrix.shape[3])
+
+            np.save(os.path.join(experiments_dir, RESULTS_DIR,
+                                 subject[-7:-4] + "test_data_{}_".format(rep_per_sub) + ".npy"), test_data)
+
+            np.save(os.path.join(experiments_dir, RESULTS_DIR,
+                                 subject[-7:-4] + "train_for_inspecting_data_{}_".format(rep_per_sub) + ".npy"),
+                    train_for_inspecting_data)
+
+            np.save(os.path.join(experiments_dir, RESULTS_DIR,
+                                 subject[-7:-4] + "train_for_inspecting_tag_{}_".format(rep_per_sub) + ".npy"),
+                    train_for_inspecting_tag)
+
+            np.save(os.path.join(experiments_dir, RESULTS_DIR,
+                                 subject[-7:-4] + "test_tags_{}_".format(rep_per_sub) + ".npy"),
+                    test_tags)
 
 
             class LossHistory(keras.callbacks.Callback):
 
                 def on_epoch_end(self, epoch, logs={}):
                     from sklearn.metrics import roc_auc_score
-                    if epoch %5 == 0:
+                    if epoch in [0,5,11, 15,20]:
+                        save_path = os.path.join(experiments_dir, RESULTS_DIR,
+                                                 subject[-7:-4] + "weight_{}_{}_".format(rep_per_sub, epoch) + ".h5")
+                        self.model.save(save_path)
+
+
                         all_prediction_P300Net = model.predict(stats.zscore(test_data, axis=1).astype(np.float32))
                         actual = np.argmax(np.mean(all_prediction_P300Net.reshape((-1, 10, 30)), axis=1), axis=1);
                         gt = np.argmax(np.mean(test_tags.reshape((-1, 10, 30)), axis=1), axis=1)
@@ -271,7 +327,7 @@ if __name__ == "__main__":
             if use_generator:
                 log_history = model.fit_generator(data_generator_batch, 7200, 20, callbacks=[history], nb_worker=1, max_q_size=1)
             else:
-                log_history = model.fit(data_generator_batch[0], data_generator_batch[1], nb_epoch=21, batch_size=900,verbose=2,
+                log_history = model.fit(data_generator_batch[0], data_generator_batch[1], nb_epoch=21, batch_size=900,verbose=1,
                                         callbacks=[history], shuffle=False, validation_split=0.1)
 
             results_directory =os.path.join(experiments_dir, RESULTS_DIR)
