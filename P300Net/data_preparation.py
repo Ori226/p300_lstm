@@ -29,6 +29,7 @@ def create_data_rep_training(file_name, fist_time_stamp, last_time_stamp, downsa
     target_per_char_as_matrix = np.zeros((train_mode_per_block.shape[0], 30), dtype=np.int)
     for i, stimuli_i in enumerate(range(1, 31)):
         all_data_per_char[i] = data_for_eval[0][gcd_res['stimulus'] == stimuli_i]
+        print i
         all_data_per_char_as_matrix[:, i, :, :] = data_for_eval[0][gcd_res['stimulus'] == stimuli_i]
 
     target_per_char = dict()
