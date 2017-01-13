@@ -114,21 +114,15 @@ def train_on_subjset(all_subjects, model_file_name):
                         type=int, default=0)
     parser.add_argument("-end_sub_idx", help="first sub",
                         type=int, default=len(all_subjects))
-    # parser.add_argument("start_sub_idx", help="first sub",
-    #                     type=int, default=len(all_subjects))
-    # parser.add_argument("last_sub_idx", help="last sub",
-    #                 type=int, default=len(all_subjects))
 
     args = parser.parse_args()
     start_idx = args.start_sub_idx
     end_idx = args.end_sub_idx
 
-    import h5py
-    f = h5py.File(model_file_name, 'r+')
-    if 'optimizer_weights' in f:
-        del f['optimizer_weights']
-    f.close()
-    only_p300_model_1 = keras.models.load_model(model_file_name)
+
+    from experiments.P300_RSVP.model_left_out.load_left_out_model import  load_left_out_model
+
+    only_p300_model_1 = load_left_out_model(model_file_name)
     original_wights = only_p300_model_1.get_weights()
 
     for experiment_counter, subject in enumerate(all_subjects[start_idx:end_idx]):
@@ -163,22 +157,12 @@ def train_on_subjset(all_subjects, model_file_name):
                                                                       batch_size=batch_size, select=select,
                                                                       debug_mode=False)
             else:
-                # cross_validation_indexes = list(cross_validation.KFold(len(train_mode_per_block)/10, n_folds=4,
-                #                                                               random_state=42, shuffle=True))
-
                 def flatten_repetitions(data_to_flatten):
                     return np.reshape(np.reshape(data_to_flatten.T * 10, (-1, 1)) + np.arange(10), (-1))
 
 
                 train_indexes = flatten_repetitions(cross_validation_indexes[0])
                 test_indexes = flatten_repetitions(cross_validation_indexes[1])
-
-                # data_generator_batch = simple_data_generator_no_dict(all_data_per_char_as_matrix[train_indexes],
-                #                                                   target_per_char_as_matrix[train_indexes], shuffle_data=False)
-                #
-                # test_data_generator_batch = simple_data_generator_no_dict(all_data_per_char_as_matrix[train_indexes],
-                #                                                      target_per_char_as_matrix[train_indexes],
-                #                                                      shuffle_data=False)
 
                 train_data_all_subject.append(np.asarray(all_data_per_char_as_matrix[train_indexes]).astype(np.float32))
                 test_data_all_subject.append(np.asarray(all_data_per_char_as_matrix[test_indexes]).astype(np.float32))
@@ -249,107 +233,20 @@ def train_on_subjset(all_subjects, model_file_name):
 
             print "end ----------{}-------".format(file_name)
 
-    pass
-
-    # from keras.models import Sequential
-    #
-    # from keras.layers import merge, Input, Dense, Flatten, Activation, Lambda, LSTM, noise
-    #
-    # eeg_sample_shape = (25, 55)
-    # only_p300_model_1 = get_only_P300_model_LSTM(eeg_sample_shape)
-    #
-    # use_p300net = False
-    # if use_p300net:
-    #     model = get_P300_model(only_p300_model_1, select=select)
-    # else:
-    #
-    #     only_p300_model_1.compile(optimizer = 'rmsprop',loss = 'binary_crossentropy', metrics=['accuracy'], )
-    #     model= only_p300_model_1
-    # print "after compile"
-    #
-    #
-    #
-    #
-    # test_tags = target_per_char_as_matrix[test_indexes]
-    #
-    # test_data = all_data_per_char_as_matrix[test_indexes].reshape(-1,all_data_per_char_as_matrix.shape[2],all_data_per_char_as_matrix.shape[3])
-    #
-    # validation_tags = target_per_char_as_matrix[validation_indexes]
-    # vaidation_data = all_data_per_char_as_matrix[validation_indexes].reshape(-1,all_data_per_char_as_matrix.shape[2],all_data_per_char_as_matrix.shape[3])
-    #
-    #
-    # train_for_inspecting_tag = target_per_char_as_matrix[train_indexes]
-    # train_for_inspecting_data = all_data_per_char_as_matrix[train_indexes].reshape(-1,
-    #                                                                            all_data_per_char_as_matrix.shape[2],
-    #                                                                            all_data_per_char_as_matrix.shape[3])
-
-
-    # np.save(os.path.join(experiments_dir, RESULTS_DIR,
-    #                          subject[-7:-4] + "test_data_{}_".format(rep_per_sub) + ".npy"),test_data)
-    #
-    # np.save(os.path.join(experiments_dir, RESULTS_DIR,
-    #                      subject[-7:-4] + "train_for_inspecting_data_{}_".format(rep_per_sub) + ".npy"), train_for_inspecting_data)
-    #
-    # np.save(os.path.join(experiments_dir, RESULTS_DIR,
-    #                      subject[-7:-4] + "train_for_inspecting_tag_{}_".format(rep_per_sub) + ".npy"),
-    #         train_for_inspecting_tag)
-    #
-    # np.save(os.path.join(experiments_dir, RESULTS_DIR,
-    #                      subject[-7:-4] + "test_tags_{}_".format(rep_per_sub) + ".npy"),
-    #         test_tags)
-
-
-
-
-    #
-    #
-    # history = LossHistory()
-    #
-    # # model.fit_generator(data_generator_batch, 7200, 20, callbacks=[history],nb_worker=1,max_q_size=1)
-    #
-    # use_generator = False
-    # if use_generator:
-    #     log_history = model.fit_generator(data_generator_batch, 7200, 20, callbacks=[history], nb_worker=1, max_q_size=1)
-    # else:
-    #     samples_weight = np.ones_like(data_generator_batch[1])
-    #     samples_weight[samples_weight  == 1] = 30
-    #     log_history = model.fit(data_generator_batch[0], data_generator_batch[1], nb_epoch=21, batch_size=900,verbose=1,
-    #                             callbacks=[history], shuffle=False, validation_split=0.1,sample_weight=samples_weight)
-    #
-    # results_directory =os.path.join(experiments_dir, RESULTS_DIR)
-    # if not os.path.exists(results_directory):
-    #     os.makedirs(results_directory)
-    #
-    # #np.save(os.path.join(experiments_dir, RESULTS_DIR, subject[-7:-4]+"_{}_".format(rep_per_sub)+".npy"), log_history.history)
-    #
-    # all_prediction_P300Net = model.predict(stats.zscore(test_data,axis=1).astype(np.float32))
-    # import theano
-    # import theano.tensor as T
-    #
-    # x = T.dmatrix('x')
-    # softmax_res_func = theano.function([x], T.nnet.softmax(x))
-    #
-    #
-    # actual = np.argmax(np.mean(all_prediction_P300Net.reshape((-1, 10, 30)), axis=1), axis=1);
-    # gt = np.argmax(np.mean(test_tags.reshape((-1, 10, 30)), axis=1), axis=1)
-    # accuracy = np.sum(actual == gt) / float(len(gt))
-    # print "subject:{},  accuracy: {}".format(subject, accuracy)
-    # break
-
-    # count False positive
-
-
-
-
-
-    # print ("temp")
 
 
 if __name__ == "__main__":
 
+    from  experiments.P300_RSVP.model_left_out import load_left_out_model
+
+    load_left_out_model.load_left_out_model("RSVP_Color116msVP{}.h5".format("fat")).summary()
+
+    # print LEFT_OUT_MODEL_FOLDER
+    pass
+
     all_subjects_code =  ['gcd', 'gcc', 'pia', 'gcb', 'gcf', 'gcg', 'gch', 'iay', 'icn', 'icr', 'fat']
     all_subjects = [(["RSVP_Color116msVP{}.mat".format(code)],
-                    r"C:\git\thesis_clean_v3\experiments\P300_RSVP\model_left_out\RSVP_Color116msVP{}.h5".format(code)) for code in all_subjects_code]
+                    r"RSVP_Color116msVP{}.h5".format(code)) for code in all_subjects_code]
 
     # all_subjects = (["RSVP_Color116msVPgcb.mat"], r"C:\git\thesis_clean_v3\experiments\P300_RSVP\model_left_out\RSVP_Color116msVPgcb.h5")
 
@@ -360,8 +257,8 @@ if __name__ == "__main__":
     for subject_data in all_subjects:
         train_on_subjset(subject_data[0], subject_data[1])
     print "stam"
-
-
-
-
-
+    #
+    #
+    #
+    #
+    #
