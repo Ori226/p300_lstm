@@ -69,12 +69,6 @@ if __name__ == "__main__":
                     "RSVP_Color116msVPicr.mat",
                     "RSVP_Color116msVPfat.mat",
                 ];
-
-    # all_subjects = ["RSVP_Color116msVPgcd.mat"
-    #                 ];
-
-
-
     parser = argparse.ArgumentParser()
     parser.add_argument("-start_sub_idx", help="first sub",
                         type=int, default=0)
@@ -158,7 +152,11 @@ if __name__ == "__main__":
     #     [test_data.reshape(test_data.shape[0] * test_data.shape[1], -1), test_tags.reshape(-1, 1)])).to_csv(
     #     'test_data_all_subjects.csv')
     import scipy.io as sio
-    sio.savemat('data_all_subjects.mat', {'train_data':final_train_matrix_with_tagging,'test_data':final_test_matrix_with_tagging})
+    # sio.savemat('data_all_subjects.mat', {'train_data':final_train_matrix_with_tagging,'test_data':final_test_matrix_with_tagging})
+
+    np.save('data_all_subjects.npy',dict(train_data=train_data, train_tags=train_tags, test_data=test_data, test_tags=test_tags))
+
+
     print ("done")
 
 
