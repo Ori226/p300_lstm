@@ -55,17 +55,19 @@ def get_only_P300_model_CNN(eeg_sample_shape):
                                  nb_row=1,
                                  border_mode='valid',
                                  init='glorot_uniform')(x)
-    x= Activation(Activation('tanh'))(x)
+    x= Activation('tanh')(x)
     x = Convolution2D(nb_filter=13,
                       nb_col=1,
                       nb_row=5,
                       subsample=(5,1),
                       border_mode='valid',
                       init='glorot_uniform')(x)
-    x = Activation(Activation('tanh'))(x)
+    x = Activation('tanh')(x)
     x = Flatten()(x)
-    x = Dense(100, activation='sigmoid')(x)
-    x = Dense(1, activation='sigmoid')(x)
+    x = Dense(100, )(x)
+    x = Activation('sigmoid')(x)
+    x = Dense(1)(x)
+    x = Activation('sigmoid')(x)
 
     model = Model(digit_input, x)
     return model
@@ -211,24 +213,27 @@ def train_on_subjset(all_subjects, model_file_name):
 
         print "accuracy_train {}:{}, auc_score_train:{} ".format(i, accuracy_train, auc_score_train)
 
-    model.save(os.path.join(experiments_dir,"model_cnn_{}.h5".format(model_file_name), overwrite=True))
+    model.save(os.path.join(experiments_dir,"model_cnn_{}.h5".format(model_file_name)), overwrite=True)
     print "end ----------{}-------".format(file_name)
 
 
 
 
 if __name__ == "__main__":
+    # all_subjects = ["RSVP_Color116msVPgcd.mat",
+    #                 "RSVP_Color116msVPgcc.mat",
+    #                 "RSVP_Color116msVPpia.mat",
+    #                  "RSVP_Color116msVPgcb.mat",
+    #                 "RSVP_Color116msVPgcf.mat",
+    #                 "RSVP_Color116msVPgcg.mat",
+    #                 "RSVP_Color116msVPgch.mat",
+    #                 "RSVP_Color116msVPiay.mat",
+    #                 "RSVP_Color116msVPicn.mat",
+    #                 "RSVP_Color116msVPicr.mat",
+    #                 "RSVP_Color116msVPfat.mat",
+    #                 ];
     all_subjects = ["RSVP_Color116msVPgcd.mat",
                     "RSVP_Color116msVPgcc.mat",
-                    "RSVP_Color116msVPpia.mat",
-                     "RSVP_Color116msVPgcb.mat",
-                    "RSVP_Color116msVPgcf.mat",
-                    "RSVP_Color116msVPgcg.mat",
-                    "RSVP_Color116msVPgch.mat",
-                    "RSVP_Color116msVPiay.mat",
-                    "RSVP_Color116msVPicn.mat",
-                    "RSVP_Color116msVPicr.mat",
-                    "RSVP_Color116msVPfat.mat",
                     ];
 
     model_file_name = "all_subjects"
