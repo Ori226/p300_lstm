@@ -177,7 +177,7 @@ def train_on_subjset(all_subjects, model_file_name):
     for i in range(1):
         model.fit(train_data.reshape(train_data.shape[0] * train_data.shape[1],
                                      train_data.shape[2], train_data.shape[3]), train_tags,
-                  verbose=1, nb_epoch=30, batch_size=600, shuffle=True)
+                  verbose=1, nb_epoch=1, batch_size=600, shuffle=True)
 
         accuracy_train, auc_score_train = predict_using_model(model,
                                                               test_data.reshape(test_data.shape[0] * test_data.shape[1],
@@ -197,7 +197,7 @@ def train_on_subjset(all_subjects, model_file_name):
     for i in range(1):
         model.fit(train_data.reshape(train_data.shape[0] * train_data.shape[1],
                                      train_data.shape[2], train_data.shape[3]), train_tags,
-                  verbose=1, nb_epoch=30, batch_size=600, shuffle=True)
+                  verbose=1, nb_epoch=1, batch_size=600, shuffle=True)
 
         accuracy_train, auc_score_train = predict_using_model(model,
                                                               test_data.reshape(test_data.shape[0] * test_data.shape[1],
