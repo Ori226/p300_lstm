@@ -46,31 +46,28 @@ else:
 
 
 
-def get_only_P300_model_CNN(eeg_sample_shape):
+def get_only_P300_model_LSTM_CNN(eeg_sample_shape):
+    from keras.regularizers import l2
     digit_input = Input(shape=eeg_sample_shape)
+    # x = Flatten(input_shape=eeg_sample_shape)(digit_input)
     from keras.layers.core import Reshape
-
-    x = Reshape((1, eeg_sample_shape[0], eeg_sample_shape[1]))(digit_input)
+    x = noise.GaussianNoise(sigma=0.0)(digit_input)
+    x = Reshape((1, eeg_sample_shape[0], eeg_sample_shape[1]))(x)
     x = Convolution2D(nb_filter=10,
-                                 nb_col=eeg_sample_shape[1],
-                                 nb_row=1,
-                                 border_mode='valid',
-                                 init='glorot_uniform')(x)
-    x= Activation('tanh')(x)
-    x = Convolution2D(nb_filter=13,
-                      nb_col=1,
-                      nb_row=5,
-                      subsample=(5,1),
+                      nb_col=eeg_sample_shape[1],
+                      nb_row=1,
                       border_mode='valid',
                       init='glorot_uniform')(x)
     x = Activation('tanh')(x)
-    x = Flatten()(x)
-    x = Dense(100, )(x)
-    x = Activation('sigmoid')(x)
-    x = Dense(1)(x)
-    x = Activation('sigmoid')(x)
+    x = Permute((3,2, 1))(x)
+    x = Reshape((eeg_sample_shape[0], 10))(x)
+    x = LSTM(30,return_sequences=False, consume_less='mem')(x)
+    x = Dense(1, activation='sigmoid')(x)
+    out = Activation(activation='sigmoid')(x)
 
-    model = Model(digit_input, x)
+
+    model = Model(digit_input, out)
+    model.summary()
     return model
 #
 # def get_only_P300_model_LSTM_CNN(eeg_sample_shape):
@@ -150,6 +147,8 @@ if __name__ == "__main__":
 
                 ];
 
+    all_subjects = ["RSVP_Color116msVPgcd.mat"];
+
 
 
     parser = argparse.ArgumentParser()
@@ -178,7 +177,7 @@ if __name__ == "__main__":
 
         file_name = os.path.join(data_base_dir, subject)
         _, target_per_char, train_mode_per_block, all_data_per_char_as_matrix, target_per_char_as_matrix = create_data_rep_training(
-            file_name, -200, 800, downsampe_params=8)
+            file_name, -200, 800, downsampe_params=4)
 
 
         noise_data = dict()
@@ -187,7 +186,7 @@ if __name__ == "__main__":
 
         for time_shift_noise in noist_shifts:
             _, _, _, noise_data[time_shift_noise], _ = create_data_rep_training(
-                file_name, (-200 + time_shift_noise), (800 + time_shift_noise), downsampe_params=8)
+                file_name, (-200 + time_shift_noise), (800 + time_shift_noise), downsampe_params=4)
 
             # _, _, _, all_data_per_char_as_matrix_noise_m_120, _ = create_data_rep_training(
             #     file_name, -320, 680, downsampe_params=8)
@@ -243,7 +242,7 @@ if __name__ == "__main__":
             test_tags_all_subject.append(target_per_char_as_matrix[test_indexes])
 
             break
-    eeg_sample_shape = (25, 55)
+    eeg_sample_shape = (50, 55)
     only_p300_model_1 = get_only_P300_model_CNN(eeg_sample_shape)
     only_p300_model_1.summary()
 
