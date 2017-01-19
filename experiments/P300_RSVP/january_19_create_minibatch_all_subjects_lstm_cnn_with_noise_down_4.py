@@ -147,7 +147,6 @@ if __name__ == "__main__":
 
                 ];
 
-    all_subjects = ["RSVP_Color116msVPgcd.mat"];
 
 
 
