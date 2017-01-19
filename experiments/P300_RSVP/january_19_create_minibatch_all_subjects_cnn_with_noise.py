@@ -137,16 +137,16 @@ if __name__ == "__main__":
 
 
     all_subjects = ["RSVP_Color116msVPgcd.mat",
-                    # "RSVP_Color116msVPgcc.mat",
-                    # "RSVP_Color116msVPpia.mat",
-                    # "RSVP_Color116msVPgcb.mat",
-                    # "RSVP_Color116msVPgcf.mat",
-                    # "RSVP_Color116msVPgcg.mat",
-                    # "RSVP_Color116msVPgch.mat",
-                    # "RSVP_Color116msVPiay.mat",
-                    # "RSVP_Color116msVPicn.mat",
-                    # "RSVP_Color116msVPicr.mat",
-                    # "RSVP_Color116msVPfat.mat",
+                    "RSVP_Color116msVPgcc.mat",
+                    "RSVP_Color116msVPpia.mat",
+                    "RSVP_Color116msVPgcb.mat",
+                    "RSVP_Color116msVPgcf.mat",
+                    "RSVP_Color116msVPgcg.mat",
+                    "RSVP_Color116msVPgch.mat",
+                    "RSVP_Color116msVPiay.mat",
+                    "RSVP_Color116msVPicn.mat",
+                    "RSVP_Color116msVPicr.mat",
+                    "RSVP_Color116msVPfat.mat",
 
                 ];
 
