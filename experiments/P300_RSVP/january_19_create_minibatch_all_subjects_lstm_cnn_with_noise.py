@@ -207,7 +207,7 @@ if __name__ == "__main__":
             test_tags_all_subject.append(target_per_char_as_matrix[test_indexes])
 
             break
-    eeg_sample_shape = (25, 55)
+    eeg_sample_shape = (50, 55)
     only_p300_model_1 = get_only_P300_model_LSTM_CNN(eeg_sample_shape)
     only_p300_model_1.summary()
 
@@ -250,10 +250,10 @@ if __name__ == "__main__":
         print "accuracy_train {}:{}, auc_score_train:{} ".format(i, accuracy_train, auc_score_train)
 
     model.optimizer.lr.set_value(0.0001)
-    for i in range(30):
+    for i in range(6):
         model.fit(train_data.reshape(train_data.shape[0] * train_data.shape[1],
                                      train_data.shape[2], train_data.shape[3]), train_tags,
-                  verbose=1, nb_epoch=1, batch_size=600, shuffle=True)
+                  verbose=1, nb_epoch=5, batch_size=600, shuffle=True)
 
         for time_shift_noise in noist_shifts:
             test_data = test_data_with_noise[time_shift_noise]

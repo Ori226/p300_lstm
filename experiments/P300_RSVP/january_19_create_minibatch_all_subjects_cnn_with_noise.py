@@ -243,7 +243,7 @@ if __name__ == "__main__":
             test_tags_all_subject.append(target_per_char_as_matrix[test_indexes])
 
             break
-    eeg_sample_shape = (25, 55)
+    eeg_sample_shape = (50, 55)
     only_p300_model_1 = get_only_P300_model_CNN(eeg_sample_shape)
     only_p300_model_1.summary()
 
