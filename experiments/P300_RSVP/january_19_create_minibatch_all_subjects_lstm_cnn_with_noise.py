@@ -62,7 +62,7 @@ def get_only_P300_model_LSTM_CNN(eeg_sample_shape):
     x = Permute((3,2, 1))(x)
     x = Reshape((eeg_sample_shape[0], 10))(x)
     x = LSTM(30,return_sequences=False, consume_less='mem')(x)
-    x = Dense(1, activation='sigmoid')(x)
+    x = Dense(1)(x)
     out = Activation(activation='sigmoid')(x)
 
 
@@ -103,16 +103,16 @@ if __name__ == "__main__":
 
 
     all_subjects = ["RSVP_Color116msVPgcd.mat",
-                    "RSVP_Color116msVPgcc.mat",
-                    "RSVP_Color116msVPpia.mat",
-                    "RSVP_Color116msVPgcb.mat",
-                    "RSVP_Color116msVPgcf.mat",
-                    "RSVP_Color116msVPgcg.mat",
-                    "RSVP_Color116msVPgch.mat",
-                    "RSVP_Color116msVPiay.mat",
-                    "RSVP_Color116msVPicn.mat",
-                    "RSVP_Color116msVPicr.mat",
-                    "RSVP_Color116msVPfat.mat",
+                    # "RSVP_Color116msVPgcc.mat",
+                    # "RSVP_Color116msVPpia.mat",
+                    # "RSVP_Color116msVPgcb.mat",
+                    # "RSVP_Color116msVPgcf.mat",
+                    # "RSVP_Color116msVPgcg.mat",
+                    # "RSVP_Color116msVPgch.mat",
+                    # "RSVP_Color116msVPiay.mat",
+                    # "RSVP_Color116msVPicn.mat",
+                    # "RSVP_Color116msVPicr.mat",
+                    # "RSVP_Color116msVPfat.mat",
 
                 ];
 
@@ -236,7 +236,7 @@ if __name__ == "__main__":
         for time_shift_noise in noist_shifts:
             test_data = test_data_with_noise[time_shift_noise]
             accuracy_test, auc_score_test = predict_using_model(model,
-                                                                test_data_with_noise[time_shift_noise].reshape(
+                                                                test_data.reshape(
                                                                     test_data.shape[0] * test_data.shape[1],
                                                                     test_data.shape[2], test_data.shape[3]), test_tags)
             print "noise:{} accuracy_test {}:{}, auc_score_train:{} ".format(time_shift_noise, i, accuracy_test, auc_score_test )

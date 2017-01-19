@@ -62,7 +62,7 @@ def get_only_P300_model_LSTM_CNN(eeg_sample_shape):
     x = Permute((3,2, 1))(x)
     x = Reshape((eeg_sample_shape[0], 10))(x)
     x = LSTM(30,return_sequences=False, consume_less='mem')(x)
-    x = Dense(1, activation='sigmoid')(x)
+    x = Dense(1)(x)
     out = Activation(activation='sigmoid')(x)
 
 
