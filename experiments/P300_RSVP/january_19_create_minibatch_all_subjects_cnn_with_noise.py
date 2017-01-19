@@ -46,64 +46,37 @@ else:
 
 
 
-def get_only_P300_model_CNN(eeg_sample_shape):
+def get_only_P300_model_LSTM_CNN(eeg_sample_shape):
+    from keras.regularizers import l2
     digit_input = Input(shape=eeg_sample_shape)
+    # x = Flatten(input_shape=eeg_sample_shape)(digit_input)
     from keras.layers.core import Reshape
-
-    x = Reshape((1, eeg_sample_shape[0], eeg_sample_shape[1]))(digit_input)
+    x = noise.GaussianNoise(sigma=0.0)(digit_input)
+    x = Reshape((1, eeg_sample_shape[0], eeg_sample_shape[1]))(x)
     x = Convolution2D(nb_filter=10,
-                                 nb_col=eeg_sample_shape[1],
-                                 nb_row=1,
-                                 border_mode='valid',
-                                 init='glorot_uniform')(x)
-    x= Activation('tanh')(x)
-    x = Convolution2D(nb_filter=13,
-                      nb_col=1,
-                      nb_row=5,
-                      subsample=(5,1),
+                      nb_col=eeg_sample_shape[1],
+                      nb_row=1,
                       border_mode='valid',
                       init='glorot_uniform')(x)
-    x = Activation('tanh')(x)
-    x = Flatten()(x)
-    x = Dense(100, )(x)
-    x = Activation('sigmoid')(x)
-    x = Dense(1)(x)
-    x = Activation('sigmoid')(x)
+    x = Activation(Activation('tanh'))(x)
+    # result shape (10,25,1)
 
-    model = Model(digit_input, x)
+
+    x = Permute((3,2, 1))(x)
+    x = Reshape((eeg_sample_shape[0], 10))(x)
+    # x = LSTM(10,return_sequences=True, consume_less='mem')(x)
+    x = LSTM(30,return_sequences=False, consume_less='mem')(x)
+    # x = LSTM(10, return_sequences=False, consume_less='mem')(x)
+    # x = LSTM(100, return_sequences=False, consume_less='mem')(x)
+    # x = Dense(40,activation='tanh')(x)
+    out = Dense(1, activation='sigmoid')(x)
+    # out = Activation('tanh')(x)
+
+
+    model = Model(digit_input, out)
+    model.summary()
     return model
-#
-# def get_only_P300_model_LSTM_CNN(eeg_sample_shape):
-#     from keras.regularizers import l2
-#     digit_input = Input(shape=eeg_sample_shape)
-#     # x = Flatten(input_shape=eeg_sample_shape)(digit_input)
-#     from keras.layers.core import Reshape
-#     x = noise.GaussianNoise(sigma=0.0)(digit_input)
-#     x = Reshape((1, eeg_sample_shape[0], eeg_sample_shape[1]))(x)
-#     x = Convolution2D(nb_filter=10,
-#                       nb_col=eeg_sample_shape[1],
-#                       nb_row=1,
-#                       border_mode='valid',
-#                       init='glorot_uniform')(x)
-#     x = Activation(Activation('tanh'))(x)
-#     # result shape (10,25,1)
-#
-#
-#     x = Permute((3,2, 1))(x)
-#     x = Reshape((eeg_sample_shape[0], 10))(x)
-#     # x = LSTM(10,return_sequences=True, consume_less='mem')(x)
-#     x = LSTM(30,return_sequences=False, consume_less='mem')(x)
-#     # x = LSTM(10, return_sequences=False, consume_less='mem')(x)
-#     # x = LSTM(100, return_sequences=False, consume_less='mem')(x)
-#     # x = Dense(40,activation='tanh')(x)
-#     out = Dense(1, activation='sigmoid')(x)
-#     # out = Activation('tanh')(x)
-#
-#
-#     model = Model(digit_input, out)
-#     model.summary()
-#     return model
-#
+
 
 def get_P300_model(only_P300_model, select):
     model = only_P300_model
@@ -149,8 +122,6 @@ if __name__ == "__main__":
                     "RSVP_Color116msVPfat.mat",
 
                 ];
-
-
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-start_sub_idx", help="first sub",
@@ -244,7 +215,7 @@ if __name__ == "__main__":
 
             break
     eeg_sample_shape = (25, 55)
-    only_p300_model_1 = get_only_P300_model_CNN(eeg_sample_shape)
+    only_p300_model_1 = get_only_P300_model_LSTM_CNN(eeg_sample_shape)
     only_p300_model_1.summary()
 
     from keras.optimizers import RMSprop
