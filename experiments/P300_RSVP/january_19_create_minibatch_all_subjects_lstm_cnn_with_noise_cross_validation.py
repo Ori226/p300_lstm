@@ -216,10 +216,10 @@ if __name__ == "__main__":
         test_tags = np.vstack(test_tags_all_subject).flatten()
 
 
-        for i in  range(30):
+        for i in  range(1):
             model.fit(train_data.reshape(train_data.shape[0] * train_data.shape[1],
                                          train_data.shape[2], train_data.shape[3]), train_tags,
-                      verbose=1,nb_epoch=1, batch_size=600,shuffle=True)
+                      verbose=1,nb_epoch=30, batch_size=600,shuffle=True)
 
 
 
@@ -240,10 +240,10 @@ if __name__ == "__main__":
             print "cv:{} accuracy_train {}:{}, auc_score_train:{} ".format(cross_validation_iter, i, accuracy_train, auc_score_train)
 
         model.optimizer.lr.set_value(0.0001)
-        for i in range(6):
+        for i in range(1):
             model.fit(train_data.reshape(train_data.shape[0] * train_data.shape[1],
                                          train_data.shape[2], train_data.shape[3]), train_tags,
-                      verbose=1, nb_epoch=5, batch_size=600, shuffle=True)
+                      verbose=1, nb_epoch=30, batch_size=600, shuffle=True)
 
             for time_shift_noise in noist_shifts:
                 test_data = test_data_with_noise[time_shift_noise]
