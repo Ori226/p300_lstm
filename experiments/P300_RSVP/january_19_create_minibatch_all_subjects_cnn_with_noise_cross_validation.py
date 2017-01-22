@@ -133,9 +133,9 @@ if __name__ == "__main__":
     start_idx = args.start_sub_idx
     end_idx = args.end_sub_idx
 
+    number_of_k_fold = 20
 
-
-    for cross_validation_iter in range(4):
+    for cross_validation_iter in range(number_of_k_fold):
 
 
         train_data_all_subject = []
@@ -164,7 +164,7 @@ if __name__ == "__main__":
 
 
 
-            for rep_per_sub, cross_validation_indexes in enumerate(list(cross_validation.KFold(len(train_mode_per_block)/10, n_folds=4,
+            for rep_per_sub, cross_validation_indexes in enumerate(list(cross_validation.KFold(len(train_mode_per_block)/10, n_folds=number_of_k_fold,
                                                                                   random_state=42, shuffle=True))):
                 if cross_validation_indexes < cross_validation_iter:
                     continue
@@ -243,10 +243,10 @@ if __name__ == "__main__":
             print "cv:{} accuracy_train {}:{}, auc_score_train:{} ".format(cross_validation_iter, i, accuracy_train, auc_score_train)
 
         model.optimizer.lr.set_value(0.0001)
-        for i in range(6):
+        for i in range(1):
             model.fit(train_data.reshape(train_data.shape[0] * train_data.shape[1],
                                          train_data.shape[2], train_data.shape[3]), train_tags,
-                      verbose=1, nb_epoch=5, batch_size=600, shuffle=True)
+                      verbose=1, nb_epoch=30, batch_size=600, shuffle=True)
 
             for time_shift_noise in noist_shifts:
                 test_data = test_data_with_noise[time_shift_noise]
@@ -254,7 +254,7 @@ if __name__ == "__main__":
                                                                     test_data_with_noise[time_shift_noise].reshape(
                                                                         test_data.shape[0] * test_data.shape[1],
                                                                         test_data.shape[2], test_data.shape[3]), test_tags)
-                print "cv:{} noise:{} accuracy_test {}:{}, auc_score_train:{} ".format(cross_validation_iter, time_shift_noise, i, accuracy_test,
+                print "cvכ:{} noise:{} accuracy_test {}:{}, auc_score_train:{} ".format(cross_validation_iter, time_shift_noise, i, accuracy_test,
                                                                                  auc_score_test)
 
             accuracy_train, auc_score_train = predict_using_model(model,
@@ -262,7 +262,7 @@ if __name__ == "__main__":
                                                                       train_data.shape[0] * train_data.shape[1],
                                                                       train_data.shape[2], train_data.shape[3]), train_tags)
 
-            print "cv:{} accuracy_train {}:{}, auc_score_train:{} ".format(cross_validation_iter, i, accuracy_train, auc_score_train)
+            print "cvכ:{} accuracy_train {}:{}, auc_score_train:{} ".format(cross_validation_iter, i, accuracy_train, auc_score_train)
 
     pass
 
