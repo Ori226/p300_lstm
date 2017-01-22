@@ -219,10 +219,10 @@ if __name__ == "__main__":
         test_tags = np.vstack(test_tags_all_subject).flatten()
 
 
-        for i in  range(30):
+        for i in  range(1):
             model.fit(train_data.reshape(train_data.shape[0] * train_data.shape[1],
                                          train_data.shape[2], train_data.shape[3]), train_tags,
-                      verbose=1,nb_epoch=1, batch_size=600,shuffle=True)
+                      verbose=1,nb_epoch=30, batch_size=600,shuffle=True)
 
 
 
