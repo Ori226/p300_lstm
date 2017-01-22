@@ -130,7 +130,7 @@ if __name__ == "__main__":
     start_idx = args.start_sub_idx
     end_idx = args.end_sub_idx
 
-    number_of_k_fold = 20
+    number_of_k_fold = 10
 
     for cross_validation_iter in range(number_of_k_fold):
 
