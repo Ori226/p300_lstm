@@ -254,7 +254,7 @@ if __name__ == "__main__":
                                                                     test_data_with_noise[time_shift_noise].reshape(
                                                                         test_data.shape[0] * test_data.shape[1],
                                                                         test_data.shape[2], test_data.shape[3]), test_tags)
-                print "cvכ:{} noise:{} accuracy_test {}:{}, auc_score_train:{} ".format(cross_validation_iter, time_shift_noise, i, accuracy_test,
+                print "cvf:{} noise:{} accuracy_test {}:{}, auc_score_train:{} ".format(cross_validation_iter, time_shift_noise, i, accuracy_test,
                                                                                  auc_score_test)
 
             accuracy_train, auc_score_train = predict_using_model(model,
@@ -262,7 +262,7 @@ if __name__ == "__main__":
                                                                       train_data.shape[0] * train_data.shape[1],
                                                                       train_data.shape[2], train_data.shape[3]), train_tags)
 
-            print "cvכ:{} accuracy_train {}:{}, auc_score_train:{} ".format(cross_validation_iter, i, accuracy_train, auc_score_train)
+            print "cvf:{} accuracy_train {}:{}, auc_score_train:{} ".format(cross_validation_iter, i, accuracy_train, auc_score_train)
 
     pass
 
