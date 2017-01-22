@@ -37,6 +37,7 @@ RUN echo "mount -a" >> ~/.bashrc
 RUN export PYTHONPATH="${PYTHONPATH}:/code_base"
 RUN pip --no-cache-dir install sklearn --upgrade
 RUN pip --no-cache-dir install keras --upgrade
+RUN python -c "import keras"
 RUN echo '{"image_dim_ordering": "th",    "epsilon": 1e-07,    "floatx": "float32",    "backend": "theano"}' > ~/.keras/keras.json
 RUN echo export PYTHONPATH="${PYTHONPATH}:/code_base" >> ~/.bashrc
 RUN echo ln -s /mnt/s3/dataset/ /data_set >> ~/.bashrc
