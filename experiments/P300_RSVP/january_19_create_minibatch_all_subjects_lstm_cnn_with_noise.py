@@ -153,25 +153,6 @@ if __name__ == "__main__":
             _, _, _, noise_data[time_shift_noise], _ = create_data_rep_training(
                 file_name, (-200 + time_shift_noise), (800 + time_shift_noise), downsampe_params=8)
 
-            # _, _, _, all_data_per_char_as_matrix_noise_m_120, _ = create_data_rep_training(
-            #     file_name, -320, 680, downsampe_params=8)
-            #
-            # _, _, _, all_data_per_char_as_matrix_noise_m_80, _ = create_data_rep_training(
-            #     file_name, -280, 720, downsampe_params=8)
-            #
-            # _, _, _, all_data_per_char_as_matrix_noise_m_40, _ = create_data_rep_training(
-            #     file_name, -240, 760, downsampe_params=8)
-            #
-            # _, _, _, all_data_per_char_as_matrix_noise_p_40, _ = create_data_rep_training(
-            #     file_name, -160, 840, downsampe_params=8)
-            #
-            # _, _, _, all_data_per_char_as_matrix_noise_p_80, _ = create_data_rep_training(
-            #     file_name, -120, 880, downsampe_params=8)
-            #
-            # _, _, _, all_data_per_char_as_matrix_noise_p_120, _ = create_data_rep_training(
-            #     file_name, -120, 880, downsampe_params=8)
-
-
 
 
 

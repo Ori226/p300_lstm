@@ -88,7 +88,7 @@ if __name__ == "__main__":
 
     train_tags_all_subject = []
     test_tags_all_subject = []
-    time_noise = 0
+    time_noise = -120
 
     for experiment_counter, subject in enumerate(all_subjects[start_idx:end_idx]):
         print "start subject:{}".format(subject)
@@ -155,7 +155,7 @@ if __name__ == "__main__":
     import scipy.io as sio
     # sio.savemat('data_all_subjects_m_40.mat', {'test_data':final_test_matrix_with_tagging})
 
-    np.save('data_all_subjects.npy',dict(test_data=test_data, test_tags=test_tags))
+    np.save('data_all_subjects_m120.npy',dict(test_data=test_data, test_tags=test_tags))
 
 
     print ("done")

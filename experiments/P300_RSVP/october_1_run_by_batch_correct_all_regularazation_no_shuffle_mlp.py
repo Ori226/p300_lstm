@@ -43,11 +43,12 @@ else:
 
 def get_only_P300_model(eeg_sample_shape):
     from keras.layers.normalization import BatchNormalization
+    from keras.layers import *
     digit_input = Input(shape=eeg_sample_shape)
     x = Flatten(input_shape=eeg_sample_shape)(digit_input)
-    x = Dense(100,activation='relu')(x)
+    x = Dense(30,activation='relu')(x)
     x= BatchNormalization()(x)
-    x = Dense(100,activation='relu')(x)
+    x = Dense(30,activation='relu')(x)
     out = Dense(1, activation='tanh')(x)
     # out = Activation('tanh')(x)
 
@@ -105,8 +106,10 @@ def print_predictions():
 np.random.seed(42)
 if __name__ == "__main__":
 
-
-
+    eeg_sample_shape = (25, 55)
+    only_p300_model_1 = get_only_P300_model(eeg_sample_shape)
+    only_p300_model_1.summary()
+    1/0
 
     all_subjects = [
                     "RSVP_Color116msVPgcc.mat",

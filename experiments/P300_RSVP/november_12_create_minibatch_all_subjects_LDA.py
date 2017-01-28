@@ -159,7 +159,7 @@ if __name__ == "__main__":
 
             break
 
-    model = LDA()
+
 
     from scipy import stats
     train_data = stats.zscore(np.vstack(train_data_all_subject),axis=1)
@@ -167,7 +167,7 @@ if __name__ == "__main__":
 
     test_data = stats.zscore(np.vstack(test_data_all_subject),axis=1)
     test_tags = np.vstack(test_tags_all_subject).flatten()
-
+    model = LDA()
     model.fit(train_data.reshape(train_data.shape[0] * train_data.shape[1], -1), train_tags)
 
     accuracy_train, auc_score_train = predict_using_model(model,
