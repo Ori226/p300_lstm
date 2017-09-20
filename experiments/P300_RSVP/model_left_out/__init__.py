@@ -1,1 +1,0 @@
-LEFT_OUT_MODEL_FOLDER = __file__
