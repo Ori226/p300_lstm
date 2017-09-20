@@ -32,6 +32,40 @@ def extractBasicData(res):
     return all_relevant_channels, channels_names, marker_positions, target
 
 
+def extractBasicDataTuBerlin(res):
+    part_index = 1
+    set_2 = [x for x in res['mnt']['clab']]
+
+    set_1= [x for x in res['data'][part_index].channels]
+
+    # electrode used in the experiment
+    # set_2 = [x[0] for x in res['bbci']['bbci'][0][0]['analyze'][0][0]['features'][0][0]['clab'][0][0][0]]
+
+    all_relevant_channels = []
+    channels_names = []
+    for i in range(len(set_1)):
+        if (set_1[i] in set_2):
+
+            all_relevant_channels.append(res['data'][part_index].X[:,i])
+            channels_names.append(set_1[i])
+    marker_positions = res['bbci_mrk'][part_index].event.trial_idx
+    target = 2- res['data'][part_index].y
+
+
+    train_trial = res['bbci_mrk'][part_index].event.trial_idx
+    train_block = res['bbci_mrk'][part_index].event.block_idx
+    stimulus = res['bbci_mrk'][part_index].event.stimulus
+
+    train_mode = np.argmax(res['bbci_mrk'][part_index].event.mode,axis=1) + 1
+    train_mode = train_mode.astype(np.int8)
+
+
+    # return stimulus, train_trial, train_block, train_mode
+
+
+    return all_relevant_channels, channels_names, marker_positions, target, stimulus, train_trial, train_block, train_mode
+
+
 def readCompleteMatFile(file_path):
     """
     see 'Gaze-independent BCI-spelling using rapid serial visual presentation (RSVP)' to understand the experiment better
@@ -122,7 +156,7 @@ def downsample_data_pub(data, number_of_original_samples, down_samples_param):
     new_number_of_time_stamps = number_of_original_samples / down_samples_param
 
     # print  data_for_eval
-    temp_data_for_eval = np.zeros((data.shape[0], new_number_of_time_stamps, data.shape[2]))
+    temp_data_for_eval = np.zeros((data.shape[0], int(new_number_of_time_stamps), data.shape[2]))
 
     for new_i, i in enumerate(range(0, number_of_original_samples, down_samples_param)):
         temp_data_for_eval[:, new_i, :] = np.mean(data[:, range(i, (i + down_samples_param)), :], axis=1)

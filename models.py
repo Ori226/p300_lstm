@@ -100,7 +100,7 @@ class My_LDA_public(LDA, GeneralModel):
         return prediction_results[:,1]
 
     def fit(self, _X, _y, *args, **kwargs):
-        return super(My_LDA_public, self).fit(_X.reshape(_X.shape[0], -1), _y.flatten(), store_covariance=None, tol=None)
+        return super(My_LDA_public, self).fit(_X.reshape(_X.shape[0], -1), _y.flatten())
 
     def get_name(self):
         super(My_LDA_public, self).get_name()
