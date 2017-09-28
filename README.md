@@ -50,7 +50,6 @@ python run_multi_subject_experiment.py  -model_name lstm_cnn_big
 ```
 
  ## TODO
- 1) convert to tensorflow
  2) more use cases and tests
  3) better comments and documentation
 

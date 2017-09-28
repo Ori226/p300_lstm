@@ -170,6 +170,8 @@ def train_and_evaluate(all_subjects, current_experiment_setting,
 
 
 def main():
+    import keras
+    keras.backend.set_image_dim_ordering('th')
     parser = argparse.ArgumentParser()
     parser.add_argument("-model_name", help="name of the model of the experiment",
                         type=str, default="lstm_cnn_small")
