@@ -1,12 +1,14 @@
+
 from __future__ import print_function
 import argparse
 
 from scipy.stats import stats
+from sklearn import cross_validation
+
 from datasets.load_datasets import download_and_cache_file
 from models import get_only_P300_model_LSTM_CNN, My_LDA_public, get_only_P300_model_CNN, get_only_P300_model_LSTM
 from utils import create_data_rep_training_public
 from sklearn.metrics import roc_auc_score
-from sklearn import cross_validation
 import numpy as np
 
 __author__ = 'ORI'
@@ -143,7 +145,7 @@ def train_and_evaluate(all_subjects, current_experiment_setting,
 
     model.fit(train_data.reshape(train_data.shape[0] * train_data.shape[1],
                                  train_data.shape[2], train_data.shape[3]), train_tags,
-              verbose=1, nb_epoch=30, batch_size=600, shuffle=True)
+              verbose=1, epochs=30, batch_size=600, shuffle=True)
 
     for time_shift_noise in noise_shifts:
         test_data = test_data_with_noise[time_shift_noise]

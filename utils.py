@@ -1,3 +1,5 @@
+from importlib import reload
+
 import numpy as np
 import scipy.io as sio
 
@@ -161,3 +163,16 @@ def downsample_data_pub(data, number_of_original_samples, down_samples_param):
     for new_i, i in enumerate(range(0, number_of_original_samples, down_samples_param)):
         temp_data_for_eval[:, new_i, :] = np.mean(data[:, range(i, (i + down_samples_param)), :], axis=1)
     return temp_data_for_eval
+
+
+
+
+def set_keras_backend(backend):
+    import keras.backend as K
+    import os
+
+    if K.backend() != backend:
+        os.environ['KERAS_BACKEND'] = backend
+        reload(K)
+        assert K.backend() == backend
+

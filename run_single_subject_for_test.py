@@ -1,6 +1,9 @@
 import argparse
-
+from utils import set_keras_backend
+set_keras_backend("tensorflow")
 from run_multi_subject_experiment import get_model, train_and_evaluate
+
+
 
 
 def main():
@@ -13,7 +16,7 @@ def main():
 
     args = parser.parse_args()
     model_name = args.model_name
-    # model_name = 'lstm_cnn_small'
+    model_name = 'lstm_cnn_small'
     # model_name = 'LDA'
     # model_name = 'CNN'
     # model_name = 'lstm_small'

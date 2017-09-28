@@ -36,15 +36,14 @@ def get_only_P300_model_LSTM_CNN(eeg_sample_shape, number_of_hidden=30):
     digit_input = Input(shape=eeg_sample_shape)
     from keras.layers.core import Reshape
     x = Reshape((1, eeg_sample_shape[0], eeg_sample_shape[1]))(digit_input)
-    x = Convolution2D(nb_filter=10,
-                      nb_col=eeg_sample_shape[1],
-                      nb_row=1,
-                      border_mode='valid',
-                      init='glorot_uniform')(x)
+    x = Convolution2D(filters=10,
+                      kernel_size=(1, eeg_sample_shape[1]),
+                      padding='valid',
+                      kernel_initializer='glorot_uniform')(x)
     x = Activation('tanh')(x)
     x = Permute((3, 2, 1))(x)
     x = Reshape((eeg_sample_shape[0], 10))(x)
-    x = LSTM(number_of_hidden, return_sequences=False, consume_less='mem')(x)
+    x = LSTM(number_of_hidden, return_sequences=False, implementation=1)(x)
     x = Dense(1)(x)
     out = Activation(activation='sigmoid')(x)
 
@@ -68,18 +67,16 @@ def get_only_P300_model_CNN(eeg_sample_shape):
     from keras.layers.core import Reshape
 
     x = Reshape((1, eeg_sample_shape[0], eeg_sample_shape[1]))(digit_input)
-    x = Convolution2D(nb_filter=10,
-                                 nb_col=eeg_sample_shape[1],
-                                 nb_row=1,
-                                 border_mode='valid',
-                                 init='glorot_uniform')(x)
+    x = Convolution2D(filters=10,
+                      kernel_size=(1,eeg_sample_shape[1]),
+                      padding='valid',
+                      kernel_initializer='glorot_uniform')(x)
     x= Activation('tanh')(x)
-    x = Convolution2D(nb_filter=13,
-                      nb_col=1,
-                      nb_row=5,
-                      subsample=(5,1),
-                      border_mode='valid',
-                      init='glorot_uniform')(x)
+    x = Convolution2D(filters=13,
+                      kernel_size=(5,1),
+                      strides=(5,1),
+                      padding='valid',
+                      kernel_initializer='glorot_uniform')(x)
     x = Activation('tanh')(x)
     x = Flatten()(x)
     x = Dense(100, )(x)
