@@ -31,6 +31,7 @@ Keras==1.2.0
 numpy==1.11.3
 scipy==0.18.1
 scikit_learn==0.19.0
+Theano==0.9.0
 ```
 
 
