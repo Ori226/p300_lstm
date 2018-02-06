@@ -10,10 +10,11 @@ from models import get_only_P300_model_LSTM_CNN, My_LDA_public, get_only_P300_mo
 from utils import create_data_rep_training_public
 from sklearn.metrics import roc_auc_score
 import numpy as np
-
+import keras
 __author__ = 'ORI'
 np.random.seed(42)
 rng = np.random.RandomState(42)
+import os
 
 def predict_using_model(model, data, tags):
     """
@@ -83,6 +84,7 @@ def prepare_data_for_experiment(all_subjects, add_time_domain_noise, current_exp
 
         _, target_per_char, train_mode_per_block, all_data_per_char_as_matrix, target_per_char_as_matrix = \
             create_data_rep_training_public(file_name, -200, 800, downsample_params=downsample_params)
+        print("done reading mat file")
 
         noise_data = dict()
         if add_time_domain_noise:
@@ -135,7 +137,11 @@ def train_and_evaluate(all_subjects, current_experiment_setting,
                        downsample_params,
                        add_time_domain_noise, cross_validation_iter,
                        number_of_k_fold,
-                       model):
+                       model,
+                       save_model=True,
+                       model_basedir=os.path.join(os.path.expanduser('~'), '.keras'),
+                       model_signature='p300model'):
+
     train_data, train_tags, test_data_with_noise, test_tags, noise_shifts = prepare_data_for_experiment(all_subjects,
                                 add_time_domain_noise=add_time_domain_noise,
                                 current_experiment_setting=current_experiment_setting,
@@ -143,9 +149,18 @@ def train_and_evaluate(all_subjects, current_experiment_setting,
                                 number_of_k_fold=number_of_k_fold,
                                 cross_validation_iter=cross_validation_iter)
 
+    callbacks=[]
+    save_model = True
+    if save_model:
+        callbacks.append(keras.callbacks.ModelCheckpoint(os.path.join(model_basedir,"model_signature.hdf5"), monitor='val_loss', verbose=0, save_best_only=True,
+                                        save_weights_only=False, mode='auto', period=1))
+
     model.fit(train_data.reshape(train_data.shape[0] * train_data.shape[1],
                                  train_data.shape[2], train_data.shape[3]), train_tags,
-              verbose=1, epochs=30, batch_size=600, shuffle=True)
+              verbose=1, epochs=30, batch_size=600, shuffle=True,
+              validation_data=(test_data_with_noise[0].reshape(test_data_with_noise[0].shape[0] * test_data_with_noise[0].shape[1],
+                                test_data_with_noise[0].shape[2], test_data_with_noise[0].shape[3]),test_tags),
+              callbacks=callbacks)
 
     for time_shift_noise in noise_shifts:
         test_data = test_data_with_noise[time_shift_noise]
